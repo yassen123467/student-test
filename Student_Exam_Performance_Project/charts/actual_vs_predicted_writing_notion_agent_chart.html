@@ -1,0 +1,1406 @@
+<style>
+	:root {
+		color-scheme: light dark;
+		--bg-base: transparent;
+		--bg-muted: #f6f5f4;
+		--bg-elevated: #ffffff;
+		--content-primary: #191918;
+		--content-secondary: #615d59;
+		--content-tertiary: #78736f;
+		--border-primary: rgba(25, 25, 24, 0.12);
+		--border-strong: rgba(25, 25, 24, 0.2);
+		--grid: rgba(25, 25, 24, 0.08);
+		--shadow-elevated: 0 4px 12px rgba(25, 25, 24, 0.1);
+		--blue: #7fb4ec;
+		--yellow: #eac26b;
+		--green: #72bc8f;
+		--purple: #bf8eda;
+		--orange: #eda86e;
+		--pink: #df84a8;
+		--teal: #4fb9c9;
+		--red: #e97366;
+		--brown: #bd9576;
+		--neutral: #a39e98;
+		--text: var(--content-primary);
+		--muted: var(--content-secondary);
+		--border: var(--border-primary);
+		--surface: var(--bg-muted);
+		--tooltip-bg: var(--bg-elevated);
+		--aqua: var(--teal);
+		--magenta: var(--pink);
+		--violet: var(--purple);
+		--canvas: var(--bg-base);
+	}
+	@media (prefers-color-scheme: dark) {
+		:root {
+			--bg-muted: #31302e;
+			--bg-elevated: #31302e;
+			--content-primary: #f6f5f4;
+			--content-secondary: #a39e98;
+			--content-tertiary: #78736f;
+			--border-primary: rgba(255, 255, 255, 0.14);
+			--border-strong: rgba(255, 255, 255, 0.22);
+			--grid: rgba(255, 255, 255, 0.09);
+			--shadow-elevated: 0 6px 16px rgba(0, 0, 0, 0.32);
+			--neutral: #78736f;
+		}
+	}
+	* {
+		box-sizing: border-box;
+	}
+	html,
+	body {
+		margin: 0;
+		padding: 0;
+		overflow-x: clip;
+		background: var(--canvas);
+	}
+	body {
+		inline-size: 100%;
+		max-inline-size: none;
+		padding-block: 16px 4px;
+		color: var(--text);
+		font: 450 14px/20px -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica,
+			Arial, sans-serif;
+	}
+	.chart-figure[data-layout="report"] {
+		padding: 8px clamp(12px, 3vw, 32px) 20px;
+	}
+	.chart-figure[data-layout="report"] .figure-header {
+		display: block;
+		margin-block-end: 20px;
+	}
+	.chart-figure[data-layout="report"] .figure-title {
+		font-size: 16px;
+		line-height: 24px;
+	}
+	.chart-figure[data-layout="report"] .figure-aside {
+		max-inline-size: none;
+		margin-block-start: 4px;
+		text-align: start;
+	}
+	.figure-header {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 16px;
+		inline-size: 100%;
+		margin-block-end: 12px;
+	}
+	.figure-title {
+		color: var(--content-primary);
+		font-size: 14px;
+		font-weight: 550;
+		line-height: 20px;
+	}
+	.panel-title {
+		font-size: 13px;
+		font-weight: 550;
+		line-height: 18px;
+		margin-block-end: 8px;
+		color: var(--content-primary);
+	}
+	.panel-aside {
+		color: var(--content-tertiary);
+		font-size: 12px;
+		line-height: 16px;
+		margin-block: -4px 12px;
+	}
+	.panel + .panel {
+		margin-block-start: 24px;
+	}
+	.figure-aside {
+		flex: 0 1 auto;
+		max-inline-size: 50%;
+		color: var(--content-tertiary);
+		font-size: 12px;
+		line-height: 16px;
+		text-align: end;
+	}
+	.legend {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 12px;
+		margin: 0 0 12px;
+		font-size: 12px;
+		line-height: 16px;
+		color: var(--muted);
+	}
+	.key-sq {
+		display: inline-block;
+		inline-size: 10px;
+		block-size: 10px;
+		border-radius: 2px;
+		background: var(--neutral);
+		margin-inline-end: 6px;
+		vertical-align: middle;
+	}
+	.key-line {
+		display: inline-block;
+		inline-size: 14px;
+		border-top: 2px solid var(--neutral);
+		margin-inline-end: 6px;
+		vertical-align: middle;
+	}
+	.key-line[data-dash="dashed"] {
+		border-top-style: dashed;
+	}
+	.chart-wrap,
+	.plot {
+		position: relative;
+		inline-size: 100%;
+		max-inline-size: none;
+	}
+	.chart-wrap {
+		height: 300px;
+	}
+	.chart-wrap > canvas,
+	.chart-wrap > svg,
+	.plot > svg {
+		display: block;
+		inline-size: 100% !important;
+		max-inline-size: none;
+	}
+	.axis-line {
+		stroke: var(--border);
+		stroke-width: 1;
+	}
+	.grid-line,
+	.guide {
+		stroke: var(--grid);
+		stroke-width: 1;
+	}
+	.guide {
+		stroke: var(--border-strong);
+	}
+	.tick-text,
+	.x-text {
+		fill: var(--muted);
+		font-size: 12px;
+	}
+	.x-text {
+		text-anchor: middle;
+	}
+	.data-mark {
+		outline: none;
+	}
+	.data-mark:focus-visible {
+		outline: 2px solid var(--blue);
+		outline-offset: -2px;
+	}
+	.chart-tooltip {
+		position: absolute;
+		z-index: 1;
+		max-inline-size: min(320px, calc(100% - 8px));
+		padding: 8px;
+		border: 1px solid var(--border-strong);
+		border-radius: 8px;
+		background: var(--tooltip-bg);
+		box-shadow: var(--shadow-elevated);
+		color: var(--text);
+		font-size: 12px;
+		line-height: 16px;
+		pointer-events: none;
+		visibility: hidden;
+		opacity: 0;
+		transition: opacity 120ms cubic-bezier(0.33, 1, 0.68, 1);
+	}
+	.chart-tooltip[data-visible="true"] {
+		visibility: visible;
+		opacity: 1;
+	}
+	.tip-title {
+		margin-block-end: 6px;
+		font-size: 13px;
+		font-weight: 550;
+		line-height: 18px;
+	}
+	.tip-row {
+		display: grid;
+		grid-template-columns: 8px minmax(0, 1fr) auto;
+		align-items: center;
+		column-gap: 8px;
+		min-inline-size: 160px;
+	}
+	.tip-key {
+		inline-size: 8px;
+		block-size: 8px;
+		border-radius: 1px;
+	}
+	.tip-label,
+	.tip-value,
+	.tip-extra {
+		color: var(--content-secondary);
+	}
+	.tip-title,
+	.tip-label,
+	.tip-extra {
+		min-inline-size: 0;
+		overflow-wrap: anywhere;
+		white-space: normal;
+	}
+	.tip-value {
+		white-space: nowrap;
+		font-variant-numeric: tabular-nums;
+		font-weight: 550;
+		text-align: end;
+	}
+	.tip-extra {
+		margin-block-start: 8px;
+		padding-block-start: 6px;
+		border-block-start: 1px solid var(--border);
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.chart-tooltip {
+			transition: none;
+		}
+	}
+	@media (max-width: 520px) {
+		.figure-header {
+			display: block;
+		}
+		.figure-aside {
+			max-inline-size: none;
+			margin-block-start: 2px;
+			text-align: start;
+		}
+	}
+	.legend-toggle {
+		display: inline-flex;
+		align-items: center;
+		padding: 2px 6px;
+		border: 0;
+		border-radius: 6px;
+		background: transparent;
+		color: var(--muted);
+		font: inherit;
+		font-size: 12px;
+		line-height: 16px;
+		cursor: pointer;
+	}
+	.legend-toggle:hover {
+		background: var(--bg-muted);
+	}
+	.legend-toggle[aria-pressed="false"] {
+		opacity: 0.45;
+	}
+	.legend-toggle:focus-visible {
+		outline: 2px solid var(--blue);
+		outline-offset: 1px;
+	}
+	.view-toggle {
+		font: inherit;
+		font-size: 12px;
+		line-height: 16px;
+		padding: 4px 10px;
+		border: 0.5px solid var(--border-strong);
+		border-radius: 6px;
+		background: transparent;
+		color: var(--muted);
+		cursor: pointer;
+	}
+	.view-toggle[aria-pressed="true"] {
+		background: var(--bg-muted);
+		color: var(--content-primary);
+		font-weight: 550;
+	}
+	.sr-only {
+		position: absolute;
+		inline-size: 1px;
+		block-size: 1px;
+		overflow: hidden;
+		clip-path: inset(50%);
+		contain: strict;
+		white-space: nowrap;
+	}
+	table.sr-only {
+		display: block;
+	}
+</style>
+<div class="chart-figure" data-layout="inline">
+<p class="sr-only">Actual Score (points): Record 1: 65.4; Record 200: 62.5. Predicted Score (points): Record 1: 66.87; Record 200: 68.18</p>
+<div class="figure-header">
+	<div class="figure-title">Writing predictions track actual scores</div>
+	<div class="figure-aside">200 unseen test records; score points</div>
+</div>
+<div class="chart-wrap" style="height: 320px;">
+	<canvas id="canonicalScatter" role="img" aria-label="Writing predictions track actual scores. 200 unseen test records; score points. Actual Score (points): Record 1: 65.4; Record 200: 62.5. Predicted Score (points): Record 1: 66.87; Record 200: 68.18">Actual Score (points): Record 1: 65.4; Record 200: 62.5. Predicted Score (points): Record 1: 66.87; Record 200: 68.18</canvas>
+	<div class="chart-tooltip" role="tooltip" aria-hidden="true"></div>
+</div><table class="sr-only">
+	<caption>Writing predictions track actual scores</caption>
+	<tr><th>Observation</th><th>Actual Score (points)</th><th>Predicted Score (points)</th></tr>
+	<tr><td>Record 1</td><td data-observation-key="Record 1" data-series-key="Actual Score (points)" data-raw-value="65.4" data-value-kind="number">65.4</td><td data-observation-key="Record 1" data-series-key="Predicted Score (points)" data-raw-value="66.87057300604067" data-value-kind="number">66.87</td></tr>
+	<tr><td>Record 2</td><td data-observation-key="Record 2" data-series-key="Actual Score (points)" data-raw-value="75.6" data-value-kind="number">75.6</td><td data-observation-key="Record 2" data-series-key="Predicted Score (points)" data-raw-value="61.574011935443025" data-value-kind="number">61.57</td></tr>
+	<tr><td>Record 3</td><td data-observation-key="Record 3" data-series-key="Actual Score (points)" data-raw-value="74.3" data-value-kind="number">74.3</td><td data-observation-key="Record 3" data-series-key="Predicted Score (points)" data-raw-value="73.841843049592" data-value-kind="number">73.84</td></tr>
+	<tr><td>Record 4</td><td data-observation-key="Record 4" data-series-key="Actual Score (points)" data-raw-value="83.6" data-value-kind="number">83.6</td><td data-observation-key="Record 4" data-series-key="Predicted Score (points)" data-raw-value="78.46281003559352" data-value-kind="number">78.46</td></tr>
+	<tr><td>Record 5</td><td data-observation-key="Record 5" data-series-key="Actual Score (points)" data-raw-value="62.3" data-value-kind="number">62.3</td><td data-observation-key="Record 5" data-series-key="Predicted Score (points)" data-raw-value="66.8576014926074" data-value-kind="number">66.86</td></tr>
+	<tr><td>Record 6</td><td data-observation-key="Record 6" data-series-key="Actual Score (points)" data-raw-value="76.5" data-value-kind="number">76.5</td><td data-observation-key="Record 6" data-series-key="Predicted Score (points)" data-raw-value="69.22545295628352" data-value-kind="number">69.23</td></tr>
+	<tr><td>Record 7</td><td data-observation-key="Record 7" data-series-key="Actual Score (points)" data-raw-value="57.1" data-value-kind="number">57.1</td><td data-observation-key="Record 7" data-series-key="Predicted Score (points)" data-raw-value="64.41080432487502" data-value-kind="number">64.41</td></tr>
+	<tr><td>Record 8</td><td data-observation-key="Record 8" data-series-key="Actual Score (points)" data-raw-value="67.9" data-value-kind="number">67.9</td><td data-observation-key="Record 8" data-series-key="Predicted Score (points)" data-raw-value="73.30186578107329" data-value-kind="number">73.3</td></tr>
+	<tr><td>Record 9</td><td data-observation-key="Record 9" data-series-key="Actual Score (points)" data-raw-value="62.5" data-value-kind="number">62.5</td><td data-observation-key="Record 9" data-series-key="Predicted Score (points)" data-raw-value="63.679981582053784" data-value-kind="number">63.68</td></tr>
+	<tr><td>Record 10</td><td data-observation-key="Record 10" data-series-key="Actual Score (points)" data-raw-value="64.7" data-value-kind="number">64.7</td><td data-observation-key="Record 10" data-series-key="Predicted Score (points)" data-raw-value="63.21657164020852" data-value-kind="number">63.22</td></tr>
+	<tr><td>Record 11</td><td data-observation-key="Record 11" data-series-key="Actual Score (points)" data-raw-value="70.1" data-value-kind="number">70.1</td><td data-observation-key="Record 11" data-series-key="Predicted Score (points)" data-raw-value="74.87454335703971" data-value-kind="number">74.87</td></tr>
+	<tr><td>Record 12</td><td data-observation-key="Record 12" data-series-key="Actual Score (points)" data-raw-value="65.7" data-value-kind="number">65.7</td><td data-observation-key="Record 12" data-series-key="Predicted Score (points)" data-raw-value="73.77746506284788" data-value-kind="number">73.78</td></tr>
+	<tr><td>Record 13</td><td data-observation-key="Record 13" data-series-key="Actual Score (points)" data-raw-value="87" data-value-kind="number">87</td><td data-observation-key="Record 13" data-series-key="Predicted Score (points)" data-raw-value="85.53074693872712" data-value-kind="number">85.53</td></tr>
+	<tr><td>Record 14</td><td data-observation-key="Record 14" data-series-key="Actual Score (points)" data-raw-value="59.8" data-value-kind="number">59.8</td><td data-observation-key="Record 14" data-series-key="Predicted Score (points)" data-raw-value="67.68065040364098" data-value-kind="number">67.68</td></tr>
+	<tr><td>Record 15</td><td data-observation-key="Record 15" data-series-key="Actual Score (points)" data-raw-value="71.2" data-value-kind="number">71.2</td><td data-observation-key="Record 15" data-series-key="Predicted Score (points)" data-raw-value="66.52022979496476" data-value-kind="number">66.52</td></tr>
+	<tr><td>Record 16</td><td data-observation-key="Record 16" data-series-key="Actual Score (points)" data-raw-value="65.6" data-value-kind="number">65.6</td><td data-observation-key="Record 16" data-series-key="Predicted Score (points)" data-raw-value="64.19689645114701" data-value-kind="number">64.2</td></tr>
+	<tr><td>Record 17</td><td data-observation-key="Record 17" data-series-key="Actual Score (points)" data-raw-value="70.5" data-value-kind="number">70.5</td><td data-observation-key="Record 17" data-series-key="Predicted Score (points)" data-raw-value="72.0349730840399" data-value-kind="number">72.03</td></tr>
+	<tr><td>Record 18</td><td data-observation-key="Record 18" data-series-key="Actual Score (points)" data-raw-value="54" data-value-kind="number">54</td><td data-observation-key="Record 18" data-series-key="Predicted Score (points)" data-raw-value="57.957996928977536" data-value-kind="number">57.96</td></tr>
+	<tr><td>Record 19</td><td data-observation-key="Record 19" data-series-key="Actual Score (points)" data-raw-value="69.9" data-value-kind="number">69.9</td><td data-observation-key="Record 19" data-series-key="Predicted Score (points)" data-raw-value="79.78404456159113" data-value-kind="number">79.78</td></tr>
+	<tr><td>Record 20</td><td data-observation-key="Record 20" data-series-key="Actual Score (points)" data-raw-value="80.7" data-value-kind="number">80.7</td><td data-observation-key="Record 20" data-series-key="Predicted Score (points)" data-raw-value="70.4650733916413" data-value-kind="number">70.47</td></tr>
+	<tr><td>Record 21</td><td data-observation-key="Record 21" data-series-key="Actual Score (points)" data-raw-value="67.8" data-value-kind="number">67.8</td><td data-observation-key="Record 21" data-series-key="Predicted Score (points)" data-raw-value="66.63074957117128" data-value-kind="number">66.63</td></tr>
+	<tr><td>Record 22</td><td data-observation-key="Record 22" data-series-key="Actual Score (points)" data-raw-value="70.7" data-value-kind="number">70.7</td><td data-observation-key="Record 22" data-series-key="Predicted Score (points)" data-raw-value="64.41522374548249" data-value-kind="number">64.42</td></tr>
+	<tr><td>Record 23</td><td data-observation-key="Record 23" data-series-key="Actual Score (points)" data-raw-value="65.4" data-value-kind="number">65.4</td><td data-observation-key="Record 23" data-series-key="Predicted Score (points)" data-raw-value="61.84861104343116" data-value-kind="number">61.85</td></tr>
+	<tr><td>Record 24</td><td data-observation-key="Record 24" data-series-key="Actual Score (points)" data-raw-value="65.2" data-value-kind="number">65.2</td><td data-observation-key="Record 24" data-series-key="Predicted Score (points)" data-raw-value="63.8179365632295" data-value-kind="number">63.82</td></tr>
+	<tr><td>Record 25</td><td data-observation-key="Record 25" data-series-key="Actual Score (points)" data-raw-value="61" data-value-kind="number">61</td><td data-observation-key="Record 25" data-series-key="Predicted Score (points)" data-raw-value="62.71297554178337" data-value-kind="number">62.71</td></tr>
+	<tr><td>Record 26</td><td data-observation-key="Record 26" data-series-key="Actual Score (points)" data-raw-value="68.8" data-value-kind="number">68.8</td><td data-observation-key="Record 26" data-series-key="Predicted Score (points)" data-raw-value="68.05169999869383" data-value-kind="number">68.05</td></tr>
+	<tr><td>Record 27</td><td data-observation-key="Record 27" data-series-key="Actual Score (points)" data-raw-value="64.3" data-value-kind="number">64.3</td><td data-observation-key="Record 27" data-series-key="Predicted Score (points)" data-raw-value="67.71966407374266" data-value-kind="number">67.72</td></tr>
+	<tr><td>Record 28</td><td data-observation-key="Record 28" data-series-key="Actual Score (points)" data-raw-value="85.1" data-value-kind="number">85.1</td><td data-observation-key="Record 28" data-series-key="Predicted Score (points)" data-raw-value="74.86812533605169" data-value-kind="number">74.87</td></tr>
+	<tr><td>Record 29</td><td data-observation-key="Record 29" data-series-key="Actual Score (points)" data-raw-value="68.6" data-value-kind="number">68.6</td><td data-observation-key="Record 29" data-series-key="Predicted Score (points)" data-raw-value="67.34962811129427" data-value-kind="number">67.35</td></tr>
+	<tr><td>Record 30</td><td data-observation-key="Record 30" data-series-key="Actual Score (points)" data-raw-value="60.5" data-value-kind="number">60.5</td><td data-observation-key="Record 30" data-series-key="Predicted Score (points)" data-raw-value="67.37554367243564" data-value-kind="number">67.38</td></tr>
+	<tr><td>Record 31</td><td data-observation-key="Record 31" data-series-key="Actual Score (points)" data-raw-value="42.6" data-value-kind="number">42.6</td><td data-observation-key="Record 31" data-series-key="Predicted Score (points)" data-raw-value="60.694748829285764" data-value-kind="number">60.69</td></tr>
+	<tr><td>Record 32</td><td data-observation-key="Record 32" data-series-key="Actual Score (points)" data-raw-value="67.2" data-value-kind="number">67.2</td><td data-observation-key="Record 32" data-series-key="Predicted Score (points)" data-raw-value="63.35878309869812" data-value-kind="number">63.36</td></tr>
+	<tr><td>Record 33</td><td data-observation-key="Record 33" data-series-key="Actual Score (points)" data-raw-value="79.7" data-value-kind="number">79.7</td><td data-observation-key="Record 33" data-series-key="Predicted Score (points)" data-raw-value="84.86749082924263" data-value-kind="number">84.87</td></tr>
+	<tr><td>Record 34</td><td data-observation-key="Record 34" data-series-key="Actual Score (points)" data-raw-value="68.8" data-value-kind="number">68.8</td><td data-observation-key="Record 34" data-series-key="Predicted Score (points)" data-raw-value="64.92753488002703" data-value-kind="number">64.93</td></tr>
+	<tr><td>Record 35</td><td data-observation-key="Record 35" data-series-key="Actual Score (points)" data-raw-value="59.1" data-value-kind="number">59.1</td><td data-observation-key="Record 35" data-series-key="Predicted Score (points)" data-raw-value="54.909616963480254" data-value-kind="number">54.91</td></tr>
+	<tr><td>Record 36</td><td data-observation-key="Record 36" data-series-key="Actual Score (points)" data-raw-value="53.1" data-value-kind="number">53.1</td><td data-observation-key="Record 36" data-series-key="Predicted Score (points)" data-raw-value="56.03544611309373" data-value-kind="number">56.04</td></tr>
+	<tr><td>Record 37</td><td data-observation-key="Record 37" data-series-key="Actual Score (points)" data-raw-value="55.4" data-value-kind="number">55.4</td><td data-observation-key="Record 37" data-series-key="Predicted Score (points)" data-raw-value="58.735038229128776" data-value-kind="number">58.74</td></tr>
+	<tr><td>Record 38</td><td data-observation-key="Record 38" data-series-key="Actual Score (points)" data-raw-value="71.3" data-value-kind="number">71.3</td><td data-observation-key="Record 38" data-series-key="Predicted Score (points)" data-raw-value="75.34159953138273" data-value-kind="number">75.34</td></tr>
+	<tr><td>Record 39</td><td data-observation-key="Record 39" data-series-key="Actual Score (points)" data-raw-value="61.9" data-value-kind="number">61.9</td><td data-observation-key="Record 39" data-series-key="Predicted Score (points)" data-raw-value="64.2109581572358" data-value-kind="number">64.21</td></tr>
+	<tr><td>Record 40</td><td data-observation-key="Record 40" data-series-key="Actual Score (points)" data-raw-value="67.4" data-value-kind="number">67.4</td><td data-observation-key="Record 40" data-series-key="Predicted Score (points)" data-raw-value="70.00249425643474" data-value-kind="number">70</td></tr>
+	<tr><td>Record 41</td><td data-observation-key="Record 41" data-series-key="Actual Score (points)" data-raw-value="63.6" data-value-kind="number">63.6</td><td data-observation-key="Record 41" data-series-key="Predicted Score (points)" data-raw-value="62.87892733960963" data-value-kind="number">62.88</td></tr>
+	<tr><td>Record 42</td><td data-observation-key="Record 42" data-series-key="Actual Score (points)" data-raw-value="82.7" data-value-kind="number">82.7</td><td data-observation-key="Record 42" data-series-key="Predicted Score (points)" data-raw-value="78.1130585890028" data-value-kind="number">78.11</td></tr>
+	<tr><td>Record 43</td><td data-observation-key="Record 43" data-series-key="Actual Score (points)" data-raw-value="58.9" data-value-kind="number">58.9</td><td data-observation-key="Record 43" data-series-key="Predicted Score (points)" data-raw-value="59.00693416431875" data-value-kind="number">59.01</td></tr>
+	<tr><td>Record 44</td><td data-observation-key="Record 44" data-series-key="Actual Score (points)" data-raw-value="60" data-value-kind="number">60</td><td data-observation-key="Record 44" data-series-key="Predicted Score (points)" data-raw-value="58.13370955398916" data-value-kind="number">58.13</td></tr>
+	<tr><td>Record 45</td><td data-observation-key="Record 45" data-series-key="Actual Score (points)" data-raw-value="84.1" data-value-kind="number">84.1</td><td data-observation-key="Record 45" data-series-key="Predicted Score (points)" data-raw-value="73.91043699366378" data-value-kind="number">73.91</td></tr>
+	<tr><td>Record 46</td><td data-observation-key="Record 46" data-series-key="Actual Score (points)" data-raw-value="78.8" data-value-kind="number">78.8</td><td data-observation-key="Record 46" data-series-key="Predicted Score (points)" data-raw-value="74.5231680330284" data-value-kind="number">74.52</td></tr>
+	<tr><td>Record 47</td><td data-observation-key="Record 47" data-series-key="Actual Score (points)" data-raw-value="95.1" data-value-kind="number">95.1</td><td data-observation-key="Record 47" data-series-key="Predicted Score (points)" data-raw-value="91.89363617870671" data-value-kind="number">91.89</td></tr>
+	<tr><td>Record 48</td><td data-observation-key="Record 48" data-series-key="Actual Score (points)" data-raw-value="62.8" data-value-kind="number">62.8</td><td data-observation-key="Record 48" data-series-key="Predicted Score (points)" data-raw-value="67.47855245414598" data-value-kind="number">67.48</td></tr>
+	<tr><td>Record 49</td><td data-observation-key="Record 49" data-series-key="Actual Score (points)" data-raw-value="62" data-value-kind="number">62</td><td data-observation-key="Record 49" data-series-key="Predicted Score (points)" data-raw-value="70.23803106118643" data-value-kind="number">70.24</td></tr>
+	<tr><td>Record 50</td><td data-observation-key="Record 50" data-series-key="Actual Score (points)" data-raw-value="75.2" data-value-kind="number">75.2</td><td data-observation-key="Record 50" data-series-key="Predicted Score (points)" data-raw-value="73.44644287038636" data-value-kind="number">73.45</td></tr>
+	<tr><td>Record 51</td><td data-observation-key="Record 51" data-series-key="Actual Score (points)" data-raw-value="69.3" data-value-kind="number">69.3</td><td data-observation-key="Record 51" data-series-key="Predicted Score (points)" data-raw-value="68.35371174190037" data-value-kind="number">68.35</td></tr>
+	<tr><td>Record 52</td><td data-observation-key="Record 52" data-series-key="Actual Score (points)" data-raw-value="68.6" data-value-kind="number">68.6</td><td data-observation-key="Record 52" data-series-key="Predicted Score (points)" data-raw-value="63.78971918475637" data-value-kind="number">63.79</td></tr>
+	<tr><td>Record 53</td><td data-observation-key="Record 53" data-series-key="Actual Score (points)" data-raw-value="75" data-value-kind="number">75</td><td data-observation-key="Record 53" data-series-key="Predicted Score (points)" data-raw-value="75.40879902481254" data-value-kind="number">75.41</td></tr>
+	<tr><td>Record 54</td><td data-observation-key="Record 54" data-series-key="Actual Score (points)" data-raw-value="68.3" data-value-kind="number">68.3</td><td data-observation-key="Record 54" data-series-key="Predicted Score (points)" data-raw-value="68.89862342764414" data-value-kind="number">68.9</td></tr>
+	<tr><td>Record 55</td><td data-observation-key="Record 55" data-series-key="Actual Score (points)" data-raw-value="67.2" data-value-kind="number">67.2</td><td data-observation-key="Record 55" data-series-key="Predicted Score (points)" data-raw-value="71.03069904441503" data-value-kind="number">71.03</td></tr>
+	<tr><td>Record 56</td><td data-observation-key="Record 56" data-series-key="Actual Score (points)" data-raw-value="53.7" data-value-kind="number">53.7</td><td data-observation-key="Record 56" data-series-key="Predicted Score (points)" data-raw-value="63.814671148769264" data-value-kind="number">63.81</td></tr>
+	<tr><td>Record 57</td><td data-observation-key="Record 57" data-series-key="Actual Score (points)" data-raw-value="68.8" data-value-kind="number">68.8</td><td data-observation-key="Record 57" data-series-key="Predicted Score (points)" data-raw-value="71.42224204467527" data-value-kind="number">71.42</td></tr>
+	<tr><td>Record 58</td><td data-observation-key="Record 58" data-series-key="Actual Score (points)" data-raw-value="68.4" data-value-kind="number">68.4</td><td data-observation-key="Record 58" data-series-key="Predicted Score (points)" data-raw-value="67.4696361117299" data-value-kind="number">67.47</td></tr>
+	<tr><td>Record 59</td><td data-observation-key="Record 59" data-series-key="Actual Score (points)" data-raw-value="67.7" data-value-kind="number">67.7</td><td data-observation-key="Record 59" data-series-key="Predicted Score (points)" data-raw-value="59.65800093387389" data-value-kind="number">59.66</td></tr>
+	<tr><td>Record 60</td><td data-observation-key="Record 60" data-series-key="Actual Score (points)" data-raw-value="61" data-value-kind="number">61</td><td data-observation-key="Record 60" data-series-key="Predicted Score (points)" data-raw-value="68.33401899052788" data-value-kind="number">68.33</td></tr>
+	<tr><td>Record 61</td><td data-observation-key="Record 61" data-series-key="Actual Score (points)" data-raw-value="82.4" data-value-kind="number">82.4</td><td data-observation-key="Record 61" data-series-key="Predicted Score (points)" data-raw-value="70.71881825894187" data-value-kind="number">70.72</td></tr>
+	<tr><td>Record 62</td><td data-observation-key="Record 62" data-series-key="Actual Score (points)" data-raw-value="84.9" data-value-kind="number">84.9</td><td data-observation-key="Record 62" data-series-key="Predicted Score (points)" data-raw-value="81.70508053584751" data-value-kind="number">81.71</td></tr>
+	<tr><td>Record 63</td><td data-observation-key="Record 63" data-series-key="Actual Score (points)" data-raw-value="70.2" data-value-kind="number">70.2</td><td data-observation-key="Record 63" data-series-key="Predicted Score (points)" data-raw-value="76.84074373603542" data-value-kind="number">76.84</td></tr>
+	<tr><td>Record 64</td><td data-observation-key="Record 64" data-series-key="Actual Score (points)" data-raw-value="63.3" data-value-kind="number">63.3</td><td data-observation-key="Record 64" data-series-key="Predicted Score (points)" data-raw-value="70.80365671396017" data-value-kind="number">70.8</td></tr>
+	<tr><td>Record 65</td><td data-observation-key="Record 65" data-series-key="Actual Score (points)" data-raw-value="78.2" data-value-kind="number">78.2</td><td data-observation-key="Record 65" data-series-key="Predicted Score (points)" data-raw-value="70.31690020519163" data-value-kind="number">70.32</td></tr>
+	<tr><td>Record 66</td><td data-observation-key="Record 66" data-series-key="Actual Score (points)" data-raw-value="45.9" data-value-kind="number">45.9</td><td data-observation-key="Record 66" data-series-key="Predicted Score (points)" data-raw-value="45.608094346100145" data-value-kind="number">45.61</td></tr>
+	<tr><td>Record 67</td><td data-observation-key="Record 67" data-series-key="Actual Score (points)" data-raw-value="58.5" data-value-kind="number">58.5</td><td data-observation-key="Record 67" data-series-key="Predicted Score (points)" data-raw-value="56.55295884174968" data-value-kind="number">56.55</td></tr>
+	<tr><td>Record 68</td><td data-observation-key="Record 68" data-series-key="Actual Score (points)" data-raw-value="65.6" data-value-kind="number">65.6</td><td data-observation-key="Record 68" data-series-key="Predicted Score (points)" data-raw-value="62.90813578093641" data-value-kind="number">62.91</td></tr>
+	<tr><td>Record 69</td><td data-observation-key="Record 69" data-series-key="Actual Score (points)" data-raw-value="78.6" data-value-kind="number">78.6</td><td data-observation-key="Record 69" data-series-key="Predicted Score (points)" data-raw-value="75.6975236523812" data-value-kind="number">75.7</td></tr>
+	<tr><td>Record 70</td><td data-observation-key="Record 70" data-series-key="Actual Score (points)" data-raw-value="74.6" data-value-kind="number">74.6</td><td data-observation-key="Record 70" data-series-key="Predicted Score (points)" data-raw-value="78.71887039835642" data-value-kind="number">78.72</td></tr>
+	<tr><td>Record 71</td><td data-observation-key="Record 71" data-series-key="Actual Score (points)" data-raw-value="78.1" data-value-kind="number">78.1</td><td data-observation-key="Record 71" data-series-key="Predicted Score (points)" data-raw-value="70.9120559965743" data-value-kind="number">70.91</td></tr>
+	<tr><td>Record 72</td><td data-observation-key="Record 72" data-series-key="Actual Score (points)" data-raw-value="67.4" data-value-kind="number">67.4</td><td data-observation-key="Record 72" data-series-key="Predicted Score (points)" data-raw-value="64.32577065863758" data-value-kind="number">64.33</td></tr>
+	<tr><td>Record 73</td><td data-observation-key="Record 73" data-series-key="Actual Score (points)" data-raw-value="74" data-value-kind="number">74</td><td data-observation-key="Record 73" data-series-key="Predicted Score (points)" data-raw-value="75.10217745197976" data-value-kind="number">75.1</td></tr>
+	<tr><td>Record 74</td><td data-observation-key="Record 74" data-series-key="Actual Score (points)" data-raw-value="61.4" data-value-kind="number">61.4</td><td data-observation-key="Record 74" data-series-key="Predicted Score (points)" data-raw-value="70.04266193268367" data-value-kind="number">70.04</td></tr>
+	<tr><td>Record 75</td><td data-observation-key="Record 75" data-series-key="Actual Score (points)" data-raw-value="85.4" data-value-kind="number">85.4</td><td data-observation-key="Record 75" data-series-key="Predicted Score (points)" data-raw-value="79.54847760403563" data-value-kind="number">79.55</td></tr>
+	<tr><td>Record 76</td><td data-observation-key="Record 76" data-series-key="Actual Score (points)" data-raw-value="81.7" data-value-kind="number">81.7</td><td data-observation-key="Record 76" data-series-key="Predicted Score (points)" data-raw-value="70.39768348919273" data-value-kind="number">70.4</td></tr>
+	<tr><td>Record 77</td><td data-observation-key="Record 77" data-series-key="Actual Score (points)" data-raw-value="62.1" data-value-kind="number">62.1</td><td data-observation-key="Record 77" data-series-key="Predicted Score (points)" data-raw-value="67.43311466797873" data-value-kind="number">67.43</td></tr>
+	<tr><td>Record 78</td><td data-observation-key="Record 78" data-series-key="Actual Score (points)" data-raw-value="77" data-value-kind="number">77</td><td data-observation-key="Record 78" data-series-key="Predicted Score (points)" data-raw-value="78.27075226760712" data-value-kind="number">78.27</td></tr>
+	<tr><td>Record 79</td><td data-observation-key="Record 79" data-series-key="Actual Score (points)" data-raw-value="55.4" data-value-kind="number">55.4</td><td data-observation-key="Record 79" data-series-key="Predicted Score (points)" data-raw-value="61.86170925227666" data-value-kind="number">61.86</td></tr>
+	<tr><td>Record 80</td><td data-observation-key="Record 80" data-series-key="Actual Score (points)" data-raw-value="95.3" data-value-kind="number">95.3</td><td data-observation-key="Record 80" data-series-key="Predicted Score (points)" data-raw-value="84.02185558501964" data-value-kind="number">84.02</td></tr>
+	<tr><td>Record 81</td><td data-observation-key="Record 81" data-series-key="Actual Score (points)" data-raw-value="68.5" data-value-kind="number">68.5</td><td data-observation-key="Record 81" data-series-key="Predicted Score (points)" data-raw-value="62.21575342406265" data-value-kind="number">62.22</td></tr>
+	<tr><td>Record 82</td><td data-observation-key="Record 82" data-series-key="Actual Score (points)" data-raw-value="73" data-value-kind="number">73</td><td data-observation-key="Record 82" data-series-key="Predicted Score (points)" data-raw-value="74.42095232209994" data-value-kind="number">74.42</td></tr>
+	<tr><td>Record 83</td><td data-observation-key="Record 83" data-series-key="Actual Score (points)" data-raw-value="53.2" data-value-kind="number">53.2</td><td data-observation-key="Record 83" data-series-key="Predicted Score (points)" data-raw-value="63.3815598409063" data-value-kind="number">63.38</td></tr>
+	<tr><td>Record 84</td><td data-observation-key="Record 84" data-series-key="Actual Score (points)" data-raw-value="59.9" data-value-kind="number">59.9</td><td data-observation-key="Record 84" data-series-key="Predicted Score (points)" data-raw-value="66.48950170981017" data-value-kind="number">66.49</td></tr>
+	<tr><td>Record 85</td><td data-observation-key="Record 85" data-series-key="Actual Score (points)" data-raw-value="69.5" data-value-kind="number">69.5</td><td data-observation-key="Record 85" data-series-key="Predicted Score (points)" data-raw-value="71.3997898900659" data-value-kind="number">71.4</td></tr>
+	<tr><td>Record 86</td><td data-observation-key="Record 86" data-series-key="Actual Score (points)" data-raw-value="75.6" data-value-kind="number">75.6</td><td data-observation-key="Record 86" data-series-key="Predicted Score (points)" data-raw-value="67.49883697000365" data-value-kind="number">67.5</td></tr>
+	<tr><td>Record 87</td><td data-observation-key="Record 87" data-series-key="Actual Score (points)" data-raw-value="71.3" data-value-kind="number">71.3</td><td data-observation-key="Record 87" data-series-key="Predicted Score (points)" data-raw-value="72.68078064095465" data-value-kind="number">72.68</td></tr>
+	<tr><td>Record 88</td><td data-observation-key="Record 88" data-series-key="Actual Score (points)" data-raw-value="78.3" data-value-kind="number">78.3</td><td data-observation-key="Record 88" data-series-key="Predicted Score (points)" data-raw-value="77.84057088932764" data-value-kind="number">77.84</td></tr>
+	<tr><td>Record 89</td><td data-observation-key="Record 89" data-series-key="Actual Score (points)" data-raw-value="65.3" data-value-kind="number">65.3</td><td data-observation-key="Record 89" data-series-key="Predicted Score (points)" data-raw-value="62.53573418766454" data-value-kind="number">62.54</td></tr>
+	<tr><td>Record 90</td><td data-observation-key="Record 90" data-series-key="Actual Score (points)" data-raw-value="71.8" data-value-kind="number">71.8</td><td data-observation-key="Record 90" data-series-key="Predicted Score (points)" data-raw-value="66.88777353106266" data-value-kind="number">66.89</td></tr>
+	<tr><td>Record 91</td><td data-observation-key="Record 91" data-series-key="Actual Score (points)" data-raw-value="56.5" data-value-kind="number">56.5</td><td data-observation-key="Record 91" data-series-key="Predicted Score (points)" data-raw-value="61.35677483376306" data-value-kind="number">61.36</td></tr>
+	<tr><td>Record 92</td><td data-observation-key="Record 92" data-series-key="Actual Score (points)" data-raw-value="82.1" data-value-kind="number">82.1</td><td data-observation-key="Record 92" data-series-key="Predicted Score (points)" data-raw-value="80.38985637094476" data-value-kind="number">80.39</td></tr>
+	<tr><td>Record 93</td><td data-observation-key="Record 93" data-series-key="Actual Score (points)" data-raw-value="63.7" data-value-kind="number">63.7</td><td data-observation-key="Record 93" data-series-key="Predicted Score (points)" data-raw-value="62.29462256806785" data-value-kind="number">62.29</td></tr>
+	<tr><td>Record 94</td><td data-observation-key="Record 94" data-series-key="Actual Score (points)" data-raw-value="62.8" data-value-kind="number">62.8</td><td data-observation-key="Record 94" data-series-key="Predicted Score (points)" data-raw-value="63.74331021840761" data-value-kind="number">63.74</td></tr>
+	<tr><td>Record 95</td><td data-observation-key="Record 95" data-series-key="Actual Score (points)" data-raw-value="63.1" data-value-kind="number">63.1</td><td data-observation-key="Record 95" data-series-key="Predicted Score (points)" data-raw-value="60.82925408206004" data-value-kind="number">60.83</td></tr>
+	<tr><td>Record 96</td><td data-observation-key="Record 96" data-series-key="Actual Score (points)" data-raw-value="54.6" data-value-kind="number">54.6</td><td data-observation-key="Record 96" data-series-key="Predicted Score (points)" data-raw-value="55.14847680122115" data-value-kind="number">55.15</td></tr>
+	<tr><td>Record 97</td><td data-observation-key="Record 97" data-series-key="Actual Score (points)" data-raw-value="50.3" data-value-kind="number">50.3</td><td data-observation-key="Record 97" data-series-key="Predicted Score (points)" data-raw-value="56.547757247638266" data-value-kind="number">56.55</td></tr>
+	<tr><td>Record 98</td><td data-observation-key="Record 98" data-series-key="Actual Score (points)" data-raw-value="63.5" data-value-kind="number">63.5</td><td data-observation-key="Record 98" data-series-key="Predicted Score (points)" data-raw-value="62.71080031997866" data-value-kind="number">62.71</td></tr>
+	<tr><td>Record 99</td><td data-observation-key="Record 99" data-series-key="Actual Score (points)" data-raw-value="80.6" data-value-kind="number">80.6</td><td data-observation-key="Record 99" data-series-key="Predicted Score (points)" data-raw-value="72.05431248310005" data-value-kind="number">72.05</td></tr>
+	<tr><td>Record 100</td><td data-observation-key="Record 100" data-series-key="Actual Score (points)" data-raw-value="63.6" data-value-kind="number">63.6</td><td data-observation-key="Record 100" data-series-key="Predicted Score (points)" data-raw-value="67.66325946960023" data-value-kind="number">67.66</td></tr>
+	<tr><td>Record 101</td><td data-observation-key="Record 101" data-series-key="Actual Score (points)" data-raw-value="70.7" data-value-kind="number">70.7</td><td data-observation-key="Record 101" data-series-key="Predicted Score (points)" data-raw-value="67.25260789939965" data-value-kind="number">67.25</td></tr>
+	<tr><td>Record 102</td><td data-observation-key="Record 102" data-series-key="Actual Score (points)" data-raw-value="73.2" data-value-kind="number">73.2</td><td data-observation-key="Record 102" data-series-key="Predicted Score (points)" data-raw-value="65.95324134657926" data-value-kind="number">65.95</td></tr>
+	<tr><td>Record 103</td><td data-observation-key="Record 103" data-series-key="Actual Score (points)" data-raw-value="70.5" data-value-kind="number">70.5</td><td data-observation-key="Record 103" data-series-key="Predicted Score (points)" data-raw-value="72.98574219641681" data-value-kind="number">72.99</td></tr>
+	<tr><td>Record 104</td><td data-observation-key="Record 104" data-series-key="Actual Score (points)" data-raw-value="67.3" data-value-kind="number">67.3</td><td data-observation-key="Record 104" data-series-key="Predicted Score (points)" data-raw-value="70.51493208639151" data-value-kind="number">70.51</td></tr>
+	<tr><td>Record 105</td><td data-observation-key="Record 105" data-series-key="Actual Score (points)" data-raw-value="63.4" data-value-kind="number">63.4</td><td data-observation-key="Record 105" data-series-key="Predicted Score (points)" data-raw-value="72.64310519105624" data-value-kind="number">72.64</td></tr>
+	<tr><td>Record 106</td><td data-observation-key="Record 106" data-series-key="Actual Score (points)" data-raw-value="62.8" data-value-kind="number">62.8</td><td data-observation-key="Record 106" data-series-key="Predicted Score (points)" data-raw-value="60.352500794138194" data-value-kind="number">60.35</td></tr>
+	<tr><td>Record 107</td><td data-observation-key="Record 107" data-series-key="Actual Score (points)" data-raw-value="72" data-value-kind="number">72</td><td data-observation-key="Record 107" data-series-key="Predicted Score (points)" data-raw-value="73.21574672438071" data-value-kind="number">73.22</td></tr>
+	<tr><td>Record 108</td><td data-observation-key="Record 108" data-series-key="Actual Score (points)" data-raw-value="75.1" data-value-kind="number">75.1</td><td data-observation-key="Record 108" data-series-key="Predicted Score (points)" data-raw-value="78.10555517755964" data-value-kind="number">78.11</td></tr>
+	<tr><td>Record 109</td><td data-observation-key="Record 109" data-series-key="Actual Score (points)" data-raw-value="64.3" data-value-kind="number">64.3</td><td data-observation-key="Record 109" data-series-key="Predicted Score (points)" data-raw-value="64.41080432487502" data-value-kind="number">64.41</td></tr>
+	<tr><td>Record 110</td><td data-observation-key="Record 110" data-series-key="Actual Score (points)" data-raw-value="59.5" data-value-kind="number">59.5</td><td data-observation-key="Record 110" data-series-key="Predicted Score (points)" data-raw-value="59.26299452708164" data-value-kind="number">59.26</td></tr>
+	<tr><td>Record 111</td><td data-observation-key="Record 111" data-series-key="Actual Score (points)" data-raw-value="76.1" data-value-kind="number">76.1</td><td data-observation-key="Record 111" data-series-key="Predicted Score (points)" data-raw-value="73.63621720148677" data-value-kind="number">73.64</td></tr>
+	<tr><td>Record 112</td><td data-observation-key="Record 112" data-series-key="Actual Score (points)" data-raw-value="50.4" data-value-kind="number">50.4</td><td data-observation-key="Record 112" data-series-key="Predicted Score (points)" data-raw-value="52.16094223112138" data-value-kind="number">52.16</td></tr>
+	<tr><td>Record 113</td><td data-observation-key="Record 113" data-series-key="Actual Score (points)" data-raw-value="49" data-value-kind="number">49</td><td data-observation-key="Record 113" data-series-key="Predicted Score (points)" data-raw-value="61.81710078477265" data-value-kind="number">61.82</td></tr>
+	<tr><td>Record 114</td><td data-observation-key="Record 114" data-series-key="Actual Score (points)" data-raw-value="50.2" data-value-kind="number">50.2</td><td data-observation-key="Record 114" data-series-key="Predicted Score (points)" data-raw-value="60.11037554193706" data-value-kind="number">60.11</td></tr>
+	<tr><td>Record 115</td><td data-observation-key="Record 115" data-series-key="Actual Score (points)" data-raw-value="63.4" data-value-kind="number">63.4</td><td data-observation-key="Record 115" data-series-key="Predicted Score (points)" data-raw-value="58.61251952201167" data-value-kind="number">58.61</td></tr>
+	<tr><td>Record 116</td><td data-observation-key="Record 116" data-series-key="Actual Score (points)" data-raw-value="65.3" data-value-kind="number">65.3</td><td data-observation-key="Record 116" data-series-key="Predicted Score (points)" data-raw-value="69.264105790905" data-value-kind="number">69.26</td></tr>
+	<tr><td>Record 117</td><td data-observation-key="Record 117" data-series-key="Actual Score (points)" data-raw-value="70.6" data-value-kind="number">70.6</td><td data-observation-key="Record 117" data-series-key="Predicted Score (points)" data-raw-value="75.74065352613914" data-value-kind="number">75.74</td></tr>
+	<tr><td>Record 118</td><td data-observation-key="Record 118" data-series-key="Actual Score (points)" data-raw-value="60.3" data-value-kind="number">60.3</td><td data-observation-key="Record 118" data-series-key="Predicted Score (points)" data-raw-value="66.5014821603898" data-value-kind="number">66.5</td></tr>
+	<tr><td>Record 119</td><td data-observation-key="Record 119" data-series-key="Actual Score (points)" data-raw-value="71.8" data-value-kind="number">71.8</td><td data-observation-key="Record 119" data-series-key="Predicted Score (points)" data-raw-value="75.5305445438199" data-value-kind="number">75.53</td></tr>
+	<tr><td>Record 120</td><td data-observation-key="Record 120" data-series-key="Actual Score (points)" data-raw-value="61.5" data-value-kind="number">61.5</td><td data-observation-key="Record 120" data-series-key="Predicted Score (points)" data-raw-value="58.81986910109405" data-value-kind="number">58.82</td></tr>
+	<tr><td>Record 121</td><td data-observation-key="Record 121" data-series-key="Actual Score (points)" data-raw-value="67.7" data-value-kind="number">67.7</td><td data-observation-key="Record 121" data-series-key="Predicted Score (points)" data-raw-value="63.532695224864995" data-value-kind="number">63.53</td></tr>
+	<tr><td>Record 122</td><td data-observation-key="Record 122" data-series-key="Actual Score (points)" data-raw-value="56.4" data-value-kind="number">56.4</td><td data-observation-key="Record 122" data-series-key="Predicted Score (points)" data-raw-value="62.162432810755895" data-value-kind="number">62.16</td></tr>
+	<tr><td>Record 123</td><td data-observation-key="Record 123" data-series-key="Actual Score (points)" data-raw-value="74" data-value-kind="number">74</td><td data-observation-key="Record 123" data-series-key="Predicted Score (points)" data-raw-value="63.73675192376198" data-value-kind="number">63.74</td></tr>
+	<tr><td>Record 124</td><td data-observation-key="Record 124" data-series-key="Actual Score (points)" data-raw-value="66.5" data-value-kind="number">66.5</td><td data-observation-key="Record 124" data-series-key="Predicted Score (points)" data-raw-value="62.674870640712655" data-value-kind="number">62.67</td></tr>
+	<tr><td>Record 125</td><td data-observation-key="Record 125" data-series-key="Actual Score (points)" data-raw-value="61.8" data-value-kind="number">61.8</td><td data-observation-key="Record 125" data-series-key="Predicted Score (points)" data-raw-value="69.81502783774363" data-value-kind="number">69.82</td></tr>
+	<tr><td>Record 126</td><td data-observation-key="Record 126" data-series-key="Actual Score (points)" data-raw-value="60" data-value-kind="number">60</td><td data-observation-key="Record 126" data-series-key="Predicted Score (points)" data-raw-value="61.569755458129144" data-value-kind="number">61.57</td></tr>
+	<tr><td>Record 127</td><td data-observation-key="Record 127" data-series-key="Actual Score (points)" data-raw-value="85.5" data-value-kind="number">85.5</td><td data-observation-key="Record 127" data-series-key="Predicted Score (points)" data-raw-value="87.11162434637883" data-value-kind="number">87.11</td></tr>
+	<tr><td>Record 128</td><td data-observation-key="Record 128" data-series-key="Actual Score (points)" data-raw-value="63.5" data-value-kind="number">63.5</td><td data-observation-key="Record 128" data-series-key="Predicted Score (points)" data-raw-value="67.89108397355903" data-value-kind="number">67.89</td></tr>
+	<tr><td>Record 129</td><td data-observation-key="Record 129" data-series-key="Actual Score (points)" data-raw-value="81.3" data-value-kind="number">81.3</td><td data-observation-key="Record 129" data-series-key="Predicted Score (points)" data-raw-value="74.50001187512389" data-value-kind="number">74.5</td></tr>
+	<tr><td>Record 130</td><td data-observation-key="Record 130" data-series-key="Actual Score (points)" data-raw-value="54.1" data-value-kind="number">54.1</td><td data-observation-key="Record 130" data-series-key="Predicted Score (points)" data-raw-value="46.310300412079776" data-value-kind="number">46.31</td></tr>
+	<tr><td>Record 131</td><td data-observation-key="Record 131" data-series-key="Actual Score (points)" data-raw-value="44.9" data-value-kind="number">44.9</td><td data-observation-key="Record 131" data-series-key="Predicted Score (points)" data-raw-value="56.605125448909185" data-value-kind="number">56.61</td></tr>
+	<tr><td>Record 132</td><td data-observation-key="Record 132" data-series-key="Actual Score (points)" data-raw-value="60.4" data-value-kind="number">60.4</td><td data-observation-key="Record 132" data-series-key="Predicted Score (points)" data-raw-value="61.7390001361408" data-value-kind="number">61.74</td></tr>
+	<tr><td>Record 133</td><td data-observation-key="Record 133" data-series-key="Actual Score (points)" data-raw-value="58.2" data-value-kind="number">58.2</td><td data-observation-key="Record 133" data-series-key="Predicted Score (points)" data-raw-value="68.64359037561627" data-value-kind="number">68.64</td></tr>
+	<tr><td>Record 134</td><td data-observation-key="Record 134" data-series-key="Actual Score (points)" data-raw-value="84.3" data-value-kind="number">84.3</td><td data-observation-key="Record 134" data-series-key="Predicted Score (points)" data-raw-value="86.32240128935128" data-value-kind="number">86.32</td></tr>
+	<tr><td>Record 135</td><td data-observation-key="Record 135" data-series-key="Actual Score (points)" data-raw-value="48.7" data-value-kind="number">48.7</td><td data-observation-key="Record 135" data-series-key="Predicted Score (points)" data-raw-value="52.84483620877589" data-value-kind="number">52.84</td></tr>
+	<tr><td>Record 136</td><td data-observation-key="Record 136" data-series-key="Actual Score (points)" data-raw-value="73.1" data-value-kind="number">73.1</td><td data-observation-key="Record 136" data-series-key="Predicted Score (points)" data-raw-value="70.68461231065301" data-value-kind="number">70.68</td></tr>
+	<tr><td>Record 137</td><td data-observation-key="Record 137" data-series-key="Actual Score (points)" data-raw-value="48" data-value-kind="number">48</td><td data-observation-key="Record 137" data-series-key="Predicted Score (points)" data-raw-value="51.24130865444303" data-value-kind="number">51.24</td></tr>
+	<tr><td>Record 138</td><td data-observation-key="Record 138" data-series-key="Actual Score (points)" data-raw-value="70.7" data-value-kind="number">70.7</td><td data-observation-key="Record 138" data-series-key="Predicted Score (points)" data-raw-value="68.45075399345025" data-value-kind="number">68.45</td></tr>
+	<tr><td>Record 139</td><td data-observation-key="Record 139" data-series-key="Actual Score (points)" data-raw-value="55" data-value-kind="number">55</td><td data-observation-key="Record 139" data-series-key="Predicted Score (points)" data-raw-value="61.549041491099175" data-value-kind="number">61.55</td></tr>
+	<tr><td>Record 140</td><td data-observation-key="Record 140" data-series-key="Actual Score (points)" data-raw-value="58.2" data-value-kind="number">58.2</td><td data-observation-key="Record 140" data-series-key="Predicted Score (points)" data-raw-value="63.379067614555794" data-value-kind="number">63.38</td></tr>
+	<tr><td>Record 141</td><td data-observation-key="Record 141" data-series-key="Actual Score (points)" data-raw-value="85.8" data-value-kind="number">85.8</td><td data-observation-key="Record 141" data-series-key="Predicted Score (points)" data-raw-value="75.09631557757626" data-value-kind="number">75.1</td></tr>
+	<tr><td>Record 142</td><td data-observation-key="Record 142" data-series-key="Actual Score (points)" data-raw-value="69.7" data-value-kind="number">69.7</td><td data-observation-key="Record 142" data-series-key="Predicted Score (points)" data-raw-value="60.956010786160064" data-value-kind="number">60.96</td></tr>
+	<tr><td>Record 143</td><td data-observation-key="Record 143" data-series-key="Actual Score (points)" data-raw-value="64.1" data-value-kind="number">64.1</td><td data-observation-key="Record 143" data-series-key="Predicted Score (points)" data-raw-value="62.292645338334914" data-value-kind="number">62.29</td></tr>
+	<tr><td>Record 144</td><td data-observation-key="Record 144" data-series-key="Actual Score (points)" data-raw-value="66.4" data-value-kind="number">66.4</td><td data-observation-key="Record 144" data-series-key="Predicted Score (points)" data-raw-value="64.68752103613889" data-value-kind="number">64.69</td></tr>
+	<tr><td>Record 145</td><td data-observation-key="Record 145" data-series-key="Actual Score (points)" data-raw-value="67.3" data-value-kind="number">67.3</td><td data-observation-key="Record 145" data-series-key="Predicted Score (points)" data-raw-value="68.59547135642093" data-value-kind="number">68.6</td></tr>
+	<tr><td>Record 146</td><td data-observation-key="Record 146" data-series-key="Actual Score (points)" data-raw-value="61.7" data-value-kind="number">61.7</td><td data-observation-key="Record 146" data-series-key="Predicted Score (points)" data-raw-value="57.76772117950493" data-value-kind="number">57.77</td></tr>
+	<tr><td>Record 147</td><td data-observation-key="Record 147" data-series-key="Actual Score (points)" data-raw-value="49.3" data-value-kind="number">49.3</td><td data-observation-key="Record 147" data-series-key="Predicted Score (points)" data-raw-value="57.40962941975478" data-value-kind="number">57.41</td></tr>
+	<tr><td>Record 148</td><td data-observation-key="Record 148" data-series-key="Actual Score (points)" data-raw-value="62.3" data-value-kind="number">62.3</td><td data-observation-key="Record 148" data-series-key="Predicted Score (points)" data-raw-value="63.35781950156963" data-value-kind="number">63.36</td></tr>
+	<tr><td>Record 149</td><td data-observation-key="Record 149" data-series-key="Actual Score (points)" data-raw-value="70.7" data-value-kind="number">70.7</td><td data-observation-key="Record 149" data-series-key="Predicted Score (points)" data-raw-value="75.16672380808735" data-value-kind="number">75.17</td></tr>
+	<tr><td>Record 150</td><td data-observation-key="Record 150" data-series-key="Actual Score (points)" data-raw-value="62.3" data-value-kind="number">62.3</td><td data-observation-key="Record 150" data-series-key="Predicted Score (points)" data-raw-value="56.88531935429966" data-value-kind="number">56.89</td></tr>
+	<tr><td>Record 151</td><td data-observation-key="Record 151" data-series-key="Actual Score (points)" data-raw-value="46.1" data-value-kind="number">46.1</td><td data-observation-key="Record 151" data-series-key="Predicted Score (points)" data-raw-value="49.3241498416894" data-value-kind="number">49.32</td></tr>
+	<tr><td>Record 152</td><td data-observation-key="Record 152" data-series-key="Actual Score (points)" data-raw-value="62.3" data-value-kind="number">62.3</td><td data-observation-key="Record 152" data-series-key="Predicted Score (points)" data-raw-value="67.8845256789134" data-value-kind="number">67.88</td></tr>
+	<tr><td>Record 153</td><td data-observation-key="Record 153" data-series-key="Actual Score (points)" data-raw-value="71.6" data-value-kind="number">71.6</td><td data-observation-key="Record 153" data-series-key="Predicted Score (points)" data-raw-value="61.07368125147811" data-value-kind="number">61.07</td></tr>
+	<tr><td>Record 154</td><td data-observation-key="Record 154" data-series-key="Actual Score (points)" data-raw-value="66.7" data-value-kind="number">66.7</td><td data-observation-key="Record 154" data-series-key="Predicted Score (points)" data-raw-value="67.92701365282504" data-value-kind="number">67.93</td></tr>
+	<tr><td>Record 155</td><td data-observation-key="Record 155" data-series-key="Actual Score (points)" data-raw-value="52.5" data-value-kind="number">52.5</td><td data-observation-key="Record 155" data-series-key="Predicted Score (points)" data-raw-value="53.83597579167389" data-value-kind="number">53.84</td></tr>
+	<tr><td>Record 156</td><td data-observation-key="Record 156" data-series-key="Actual Score (points)" data-raw-value="64.1" data-value-kind="number">64.1</td><td data-observation-key="Record 156" data-series-key="Predicted Score (points)" data-raw-value="65.1825679320549" data-value-kind="number">65.18</td></tr>
+	<tr><td>Record 157</td><td data-observation-key="Record 157" data-series-key="Actual Score (points)" data-raw-value="79.5" data-value-kind="number">79.5</td><td data-observation-key="Record 157" data-series-key="Predicted Score (points)" data-raw-value="70.45987179752989" data-value-kind="number">70.46</td></tr>
+	<tr><td>Record 158</td><td data-observation-key="Record 158" data-series-key="Actual Score (points)" data-raw-value="65.9" data-value-kind="number">65.9</td><td data-observation-key="Record 158" data-series-key="Predicted Score (points)" data-raw-value="64.78281751705634" data-value-kind="number">64.78</td></tr>
+	<tr><td>Record 159</td><td data-observation-key="Record 159" data-series-key="Actual Score (points)" data-raw-value="65.2" data-value-kind="number">65.2</td><td data-observation-key="Record 159" data-series-key="Predicted Score (points)" data-raw-value="66.0955165186754" data-value-kind="number">66.1</td></tr>
+	<tr><td>Record 160</td><td data-observation-key="Record 160" data-series-key="Actual Score (points)" data-raw-value="81.3" data-value-kind="number">81.3</td><td data-observation-key="Record 160" data-series-key="Predicted Score (points)" data-raw-value="71.28675940717793" data-value-kind="number">71.29</td></tr>
+	<tr><td>Record 161</td><td data-observation-key="Record 161" data-series-key="Actual Score (points)" data-raw-value="36.8" data-value-kind="number">36.8</td><td data-observation-key="Record 161" data-series-key="Predicted Score (points)" data-raw-value="43.90269833807363" data-value-kind="number">43.9</td></tr>
+	<tr><td>Record 162</td><td data-observation-key="Record 162" data-series-key="Actual Score (points)" data-raw-value="48" data-value-kind="number">48</td><td data-observation-key="Record 162" data-series-key="Predicted Score (points)" data-raw-value="50.46158471892254" data-value-kind="number">50.46</td></tr>
+	<tr><td>Record 163</td><td data-observation-key="Record 163" data-series-key="Actual Score (points)" data-raw-value="73.2" data-value-kind="number">73.2</td><td data-observation-key="Record 163" data-series-key="Predicted Score (points)" data-raw-value="71.14629852152113" data-value-kind="number">71.15</td></tr>
+	<tr><td>Record 164</td><td data-observation-key="Record 164" data-series-key="Actual Score (points)" data-raw-value="70.3" data-value-kind="number">70.3</td><td data-observation-key="Record 164" data-series-key="Predicted Score (points)" data-raw-value="79.97170138930102" data-value-kind="number">79.97</td></tr>
+	<tr><td>Record 165</td><td data-observation-key="Record 165" data-series-key="Actual Score (points)" data-raw-value="54.3" data-value-kind="number">54.3</td><td data-observation-key="Record 165" data-series-key="Predicted Score (points)" data-raw-value="65.01661613422863" data-value-kind="number">65.02</td></tr>
+	<tr><td>Record 166</td><td data-observation-key="Record 166" data-series-key="Actual Score (points)" data-raw-value="51.9" data-value-kind="number">51.9</td><td data-observation-key="Record 166" data-series-key="Predicted Score (points)" data-raw-value="58.239027736084275" data-value-kind="number">58.24</td></tr>
+	<tr><td>Record 167</td><td data-observation-key="Record 167" data-series-key="Actual Score (points)" data-raw-value="72.4" data-value-kind="number">72.4</td><td data-observation-key="Record 167" data-series-key="Predicted Score (points)" data-raw-value="72.05994352838376" data-value-kind="number">72.06</td></tr>
+	<tr><td>Record 168</td><td data-observation-key="Record 168" data-series-key="Actual Score (points)" data-raw-value="61.2" data-value-kind="number">61.2</td><td data-observation-key="Record 168" data-series-key="Predicted Score (points)" data-raw-value="59.28891008822302" data-value-kind="number">59.29</td></tr>
+	<tr><td>Record 169</td><td data-observation-key="Record 169" data-series-key="Actual Score (points)" data-raw-value="69.2" data-value-kind="number">69.2</td><td data-observation-key="Record 169" data-series-key="Predicted Score (points)" data-raw-value="76.20001588002025" data-value-kind="number">76.2</td></tr>
+	<tr><td>Record 170</td><td data-observation-key="Record 170" data-series-key="Actual Score (points)" data-raw-value="89" data-value-kind="number">89</td><td data-observation-key="Record 170" data-series-key="Predicted Score (points)" data-raw-value="78.45589080558251" data-value-kind="number">78.46</td></tr>
+	<tr><td>Record 171</td><td data-observation-key="Record 171" data-series-key="Actual Score (points)" data-raw-value="65" data-value-kind="number">65</td><td data-observation-key="Record 171" data-series-key="Predicted Score (points)" data-raw-value="68.94522280301166" data-value-kind="number">68.95</td></tr>
+	<tr><td>Record 172</td><td data-observation-key="Record 172" data-series-key="Actual Score (points)" data-raw-value="72.5" data-value-kind="number">72.5</td><td data-observation-key="Record 172" data-series-key="Predicted Score (points)" data-raw-value="79.84027723704577" data-value-kind="number">79.84</td></tr>
+	<tr><td>Record 173</td><td data-observation-key="Record 173" data-series-key="Actual Score (points)" data-raw-value="47.1" data-value-kind="number">47.1</td><td data-observation-key="Record 173" data-series-key="Predicted Score (points)" data-raw-value="40.42646627735377" data-value-kind="number">40.43</td></tr>
+	<tr><td>Record 174</td><td data-observation-key="Record 174" data-series-key="Actual Score (points)" data-raw-value="64.6" data-value-kind="number">64.6</td><td data-observation-key="Record 174" data-series-key="Predicted Score (points)" data-raw-value="68.02558922633331" data-value-kind="number">68.03</td></tr>
+	<tr><td>Record 175</td><td data-observation-key="Record 175" data-series-key="Actual Score (points)" data-raw-value="73.8" data-value-kind="number">73.8</td><td data-observation-key="Record 175" data-series-key="Predicted Score (points)" data-raw-value="73.64141270052063" data-value-kind="number">73.64</td></tr>
+	<tr><td>Record 176</td><td data-observation-key="Record 176" data-series-key="Actual Score (points)" data-raw-value="72.8" data-value-kind="number">72.8</td><td data-observation-key="Record 176" data-series-key="Predicted Score (points)" data-raw-value="69.2818760407569" data-value-kind="number">69.28</td></tr>
+	<tr><td>Record 177</td><td data-observation-key="Record 177" data-series-key="Actual Score (points)" data-raw-value="42.7" data-value-kind="number">42.7</td><td data-observation-key="Record 177" data-series-key="Predicted Score (points)" data-raw-value="44.313941672759384" data-value-kind="number">44.31</td></tr>
+	<tr><td>Record 178</td><td data-observation-key="Record 178" data-series-key="Actual Score (points)" data-raw-value="67.2" data-value-kind="number">67.2</td><td data-observation-key="Record 178" data-series-key="Predicted Score (points)" data-raw-value="70.77118285817315" data-value-kind="number">70.77</td></tr>
+	<tr><td>Record 179</td><td data-observation-key="Record 179" data-series-key="Actual Score (points)" data-raw-value="62.3" data-value-kind="number">62.3</td><td data-observation-key="Record 179" data-series-key="Predicted Score (points)" data-raw-value="66.26071360872288" data-value-kind="number">66.26</td></tr>
+	<tr><td>Record 180</td><td data-observation-key="Record 180" data-series-key="Actual Score (points)" data-raw-value="47.4" data-value-kind="number">47.4</td><td data-observation-key="Record 180" data-series-key="Predicted Score (points)" data-raw-value="62.97905002267088" data-value-kind="number">62.98</td></tr>
+	<tr><td>Record 181</td><td data-observation-key="Record 181" data-series-key="Actual Score (points)" data-raw-value="67.7" data-value-kind="number">67.7</td><td data-observation-key="Record 181" data-series-key="Predicted Score (points)" data-raw-value="61.89514670519216" data-value-kind="number">61.9</td></tr>
+	<tr><td>Record 182</td><td data-observation-key="Record 182" data-series-key="Actual Score (points)" data-raw-value="66" data-value-kind="number">66</td><td data-observation-key="Record 182" data-series-key="Predicted Score (points)" data-raw-value="65.93687772327353" data-value-kind="number">65.94</td></tr>
+	<tr><td>Record 183</td><td data-observation-key="Record 183" data-series-key="Actual Score (points)" data-raw-value="66.5" data-value-kind="number">66.5</td><td data-observation-key="Record 183" data-series-key="Predicted Score (points)" data-raw-value="69.55955923946591" data-value-kind="number">69.56</td></tr>
+	<tr><td>Record 184</td><td data-observation-key="Record 184" data-series-key="Actual Score (points)" data-raw-value="73.9" data-value-kind="number">73.9</td><td data-observation-key="Record 184" data-series-key="Predicted Score (points)" data-raw-value="73.37438551978258" data-value-kind="number">73.37</td></tr>
+	<tr><td>Record 185</td><td data-observation-key="Record 185" data-series-key="Actual Score (points)" data-raw-value="77.9" data-value-kind="number">77.9</td><td data-observation-key="Record 185" data-series-key="Predicted Score (points)" data-raw-value="72.94576492918664" data-value-kind="number">72.95</td></tr>
+	<tr><td>Record 186</td><td data-observation-key="Record 186" data-series-key="Actual Score (points)" data-raw-value="61.2" data-value-kind="number">61.2</td><td data-observation-key="Record 186" data-series-key="Predicted Score (points)" data-raw-value="60.88586148047464" data-value-kind="number">60.89</td></tr>
+	<tr><td>Record 187</td><td data-observation-key="Record 187" data-series-key="Actual Score (points)" data-raw-value="54.1" data-value-kind="number">54.1</td><td data-observation-key="Record 187" data-series-key="Predicted Score (points)" data-raw-value="55.47853549643938" data-value-kind="number">55.48</td></tr>
+	<tr><td>Record 188</td><td data-observation-key="Record 188" data-series-key="Actual Score (points)" data-raw-value="76.6" data-value-kind="number">76.6</td><td data-observation-key="Record 188" data-series-key="Predicted Score (points)" data-raw-value="74.34831079006399" data-value-kind="number">74.35</td></tr>
+	<tr><td>Record 189</td><td data-observation-key="Record 189" data-series-key="Actual Score (points)" data-raw-value="70.8" data-value-kind="number">70.8</td><td data-observation-key="Record 189" data-series-key="Predicted Score (points)" data-raw-value="67.31445313980703" data-value-kind="number">67.31</td></tr>
+	<tr><td>Record 190</td><td data-observation-key="Record 190" data-series-key="Actual Score (points)" data-raw-value="67.8" data-value-kind="number">67.8</td><td data-observation-key="Record 190" data-series-key="Predicted Score (points)" data-raw-value="61.77710503721152" data-value-kind="number">61.78</td></tr>
+	<tr><td>Record 191</td><td data-observation-key="Record 191" data-series-key="Actual Score (points)" data-raw-value="64.8" data-value-kind="number">64.8</td><td data-observation-key="Record 191" data-series-key="Predicted Score (points)" data-raw-value="64.60813220277974" data-value-kind="number">64.61</td></tr>
+	<tr><td>Record 192</td><td data-observation-key="Record 192" data-series-key="Actual Score (points)" data-raw-value="66.9" data-value-kind="number">66.9</td><td data-observation-key="Record 192" data-series-key="Predicted Score (points)" data-raw-value="67.22461717782666" data-value-kind="number">67.22</td></tr>
+	<tr><td>Record 193</td><td data-observation-key="Record 193" data-series-key="Actual Score (points)" data-raw-value="54.1" data-value-kind="number">54.1</td><td data-observation-key="Record 193" data-series-key="Predicted Score (points)" data-raw-value="47.2495000447184" data-value-kind="number">47.25</td></tr>
+	<tr><td>Record 194</td><td data-observation-key="Record 194" data-series-key="Actual Score (points)" data-raw-value="46.8" data-value-kind="number">46.8</td><td data-observation-key="Record 194" data-series-key="Predicted Score (points)" data-raw-value="55.211122695463416" data-value-kind="number">55.21</td></tr>
+	<tr><td>Record 195</td><td data-observation-key="Record 195" data-series-key="Actual Score (points)" data-raw-value="63.9" data-value-kind="number">63.9</td><td data-observation-key="Record 195" data-series-key="Predicted Score (points)" data-raw-value="70.62025636356417" data-value-kind="number">70.62</td></tr>
+	<tr><td>Record 196</td><td data-observation-key="Record 196" data-series-key="Actual Score (points)" data-raw-value="48.1" data-value-kind="number">48.1</td><td data-observation-key="Record 196" data-series-key="Predicted Score (points)" data-raw-value="52.85544209138568" data-value-kind="number">52.86</td></tr>
+	<tr><td>Record 197</td><td data-observation-key="Record 197" data-series-key="Actual Score (points)" data-raw-value="60.9" data-value-kind="number">60.9</td><td data-observation-key="Record 197" data-series-key="Predicted Score (points)" data-raw-value="59.409443982554166" data-value-kind="number">59.41</td></tr>
+	<tr><td>Record 198</td><td data-observation-key="Record 198" data-series-key="Actual Score (points)" data-raw-value="38.8" data-value-kind="number">38.8</td><td data-observation-key="Record 198" data-series-key="Predicted Score (points)" data-raw-value="46.84230429799681" data-value-kind="number">46.84</td></tr>
+	<tr><td>Record 199</td><td data-observation-key="Record 199" data-series-key="Actual Score (points)" data-raw-value="62.7" data-value-kind="number">62.7</td><td data-observation-key="Record 199" data-series-key="Predicted Score (points)" data-raw-value="59.26800571217429" data-value-kind="number">59.27</td></tr>
+	<tr><td>Record 200</td><td data-observation-key="Record 200" data-series-key="Actual Score (points)" data-raw-value="62.5" data-value-kind="number">62.5</td><td data-observation-key="Record 200" data-series-key="Predicted Score (points)" data-raw-value="68.18077219825618" data-value-kind="number">68.18</td></tr>
+</table>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+	;(() => {
+		"use strict"
+		if (typeof Chart === "undefined") {
+			for (const wrap of document.querySelectorAll(".chart-wrap")) {
+				wrap.textContent = "Chart could not be rendered."
+			}
+			return
+		}
+const InlineChartRuntime = (() => {
+	if (typeof Chart !== "undefined" && Chart.defaults?.datasets?.line) {
+		Chart.defaults.datasets.line.clip = 8
+	}
+	const strip = n => n.toFixed(2).replace(/0+$/, "").replace(/\.$/, "")
+	const compact = v => {
+		const a = Math.abs(v)
+		if (a >= 1e12) return strip(a / 1e12) + "T"
+		if (a >= 1e9) return strip(a / 1e9) + "B"
+		if (a >= 1e6) return strip(a / 1e6) + "M"
+		if (a >= 1e3) return strip(a / 1e3) + "K"
+		return strip(a)
+	}
+	const currency = v => {
+		const a = Math.abs(v)
+		if (a === 0 || a >= 1) return compact(a)
+		return a.toLocaleString("en-US", { maximumSignificantDigits: 3 })
+	}
+	const formatValue = (v, kind) => {
+		if (v === null || v === undefined) return "Not available"
+		if (typeof v !== "number" || !Number.isFinite(v)) {
+			throw new Error("Non-finite chart value")
+		}
+		switch (kind) {
+			case "currency":
+				return (v < 0 ? "-" : "") + "$" + currency(v)
+			case "count":
+				return Math.round(v).toLocaleString("en-US")
+			case "countCompact":
+			case "numberCompact":
+				return (v < 0 ? "-" : "") + compact(v)
+			case "percent":
+				return strip(v) + "%"
+			case "percentagePoint":
+				return strip(v) + " percentage points"
+			case "ratio":
+				return strip(v) + "×"
+			case "durationMs":
+				return Math.abs(v) < 1000 ? strip(v) + " ms" : strip(v / 1000) + " s"
+			case "number":
+				return Number(strip(v)).toLocaleString("en-US", {
+					maximumFractionDigits: 2,
+				})
+			default:
+				throw new Error("Unknown chart value kind: " + kind)
+		}
+	}
+	const axisRange = (lo, hi, opts) => {
+		const o = opts || {}
+		if (!Number.isFinite(lo) || !Number.isFinite(hi) || lo > hi) {
+			throw new Error("Axis range requires finite ordered values")
+		}
+		const target = o.target === undefined ? 5 : o.target
+		if (!Number.isInteger(target) || target < 4 || target > 6) {
+			throw new Error("Axis target must be an integer from 4 through 6")
+		}
+		const observedLo = lo
+		const observedHi = hi
+		if (Number.isFinite(o.floor) && o.floor > observedLo) {
+			throw new Error("Axis floor excludes observed values")
+		}
+		if (Number.isFinite(o.cap) && o.cap < observedHi) {
+			throw new Error("Axis cap excludes observed values")
+		}
+		if (o.zero) {
+			lo = Math.min(0, lo)
+			hi = Math.max(0, hi)
+		}
+		if (Number.isFinite(o.floor)) lo = o.floor
+		if (hi === lo) {
+			const pad = Math.abs(lo) * 0.06 || 1
+			if (Number.isFinite(o.cap)) lo -= pad
+			else hi += pad
+		}
+		const zeroIsUpperBound = o.zero && observedHi < 0
+		const paddedHi = zeroIsUpperBound ? hi : hi + (hi - lo) * 0.06
+		const span = paddedHi - lo || 1
+		const exponent = Math.floor(Math.log10(span))
+		const candidates = []
+		for (let power = exponent - 3; power <= exponent + 1; power += 1) {
+			for (const multiplier of [1, 2, 2.5, 5]) {
+				const step = Number((multiplier * 10 ** power).toPrecision(12))
+				let min
+				let max
+				if (Number.isFinite(o.floor)) {
+					min = o.floor
+					max = Number.isFinite(o.cap)
+						? o.cap
+						: Number(
+								(
+									min +
+									Math.ceil((paddedHi - min) / step - 1e-9) * step
+								).toPrecision(12),
+							)
+				} else if (Number.isFinite(o.cap)) {
+					max = o.cap
+					min = Number(
+						(max - Math.ceil((max - lo) / step - 1e-9) * step).toPrecision(12),
+					)
+				} else {
+					min = Number((Math.floor(lo / step + 1e-9) * step).toPrecision(12))
+					max = Number(
+						(
+							min +
+							Math.ceil((paddedHi - min) / step - 1e-9) * step
+						).toPrecision(12),
+					)
+				}
+				if (
+					o.tight === true &&
+					observedLo < 0 &&
+					observedHi > 0 &&
+					!Number.isFinite(o.floor) &&
+					!Number.isFinite(o.cap)
+				) {
+					const pad = (observedHi - observedLo) * 0.06
+					const tightMin = observedLo - pad
+					const tightMax = observedHi + pad
+					const ticks =
+						Math.floor(tightMax / step + 1e-9) -
+						Math.ceil(tightMin / step - 1e-9) +
+						1
+					if (ticks >= 4 && ticks <= 6) {
+						candidates.push({
+							min: tightMin,
+							max: tightMax,
+							step,
+							includeBounds: false,
+							score: Math.abs(ticks - target) * 0.1 + (2 * pad) / span,
+						})
+					}
+				}
+				const intervals = (max - min) / step
+				const tickCount = Math.round(intervals) + 1
+				if (
+					Math.abs(intervals - Math.round(intervals)) < 1e-9 &&
+					tickCount >= 4 &&
+					tickCount <= 6 &&
+					min <= observedLo &&
+					max >= observedHi
+				) {
+					candidates.push({
+						min,
+						max,
+						step,
+						score:
+							Math.abs(tickCount - target) * 0.1 +
+							(max - min - (observedHi - observedLo)) / span,
+					})
+				}
+			}
+		}
+		candidates.sort((a, b) => a.score - b.score || a.step - b.step)
+		const range = candidates[0]
+		if (!range) {
+			throw new Error("Axis range cannot produce 4-6 aligned ticks")
+		}
+		if (o.zero && observedLo >= 0 && range.min < 0) {
+			throw new Error(
+				"Axis cap cannot preserve a zero baseline with 4-6 aligned ticks",
+			)
+		}
+		if (range.includeBounds === false) {
+			return {
+				min: range.min,
+				max: range.max,
+				step: range.step,
+				includeBounds: false,
+			}
+		}
+		return { min: range.min, max: range.max, step: range.step }
+	}
+	const barPath = (x, w, y, y0, r) =>
+		y0 - y < 8
+			? "M " + x + " " + y0 + " V " + y + " H " + (x + w) + " V " + y0 + " Z"
+			: "M " +
+				x +
+				" " +
+				y0 +
+				" V " +
+				(y + r) +
+				" Q " +
+				x +
+				" " +
+				y +
+				", " +
+				(x + r) +
+				" " +
+				y +
+				" H " +
+				(x + w - r) +
+				" Q " +
+				(x + w) +
+				" " +
+				y +
+				", " +
+				(x + w) +
+				" " +
+				(y + r) +
+				" V " +
+				y0 +
+				" Z"
+	const lineLayout = (P, n) => {
+		const inset = 8
+		const left = P.left + inset
+		const right = P.left + P.width - inset
+		const xFor = i =>
+			n === 1 ? (left + right) / 2 : left + ((right - left) / (n - 1)) * i
+		const labelXFor = i =>
+			i === 0 ? P.left : i === n - 1 ? P.left + P.width : xFor(i)
+		const labelAnchorFor = i =>
+			i === 0 ? "start" : i === n - 1 ? "end" : "middle"
+		return { xFor, labelXFor, labelAnchorFor }
+	}
+	const cssVar = name =>
+		getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+	const buildTooltip = (tip, title, rows) => {
+		tip.textContent = ""
+		const addDiv = (className, text) => {
+			const node = document.createElement("div")
+			node.className = className
+			node.textContent = text
+			tip.appendChild(node)
+			return node
+		}
+		addDiv("tip-title", title)
+		for (const item of rows) {
+			if (Object.prototype.hasOwnProperty.call(item, "extra")) {
+				addDiv("tip-extra", item.extra)
+				continue
+			}
+			const row = addDiv("tip-row", "")
+			const key = document.createElement("span")
+			key.className = "tip-key"
+			key.dataset.mark = item.mark || "square"
+			key.style.background = item.color
+			const label = document.createElement("span")
+			label.className = "tip-label"
+			label.textContent = item.label
+			const value = document.createElement("span")
+			value.className = "tip-value"
+			value.textContent = item.value
+			row.append(key, label, value)
+		}
+	}
+	const positionTooltip = (tip, container, x, y) => {
+		const left = Math.max(
+			4,
+			Math.min(x + 10, container.clientWidth - tip.offsetWidth - 4),
+		)
+		const above = y - tip.offsetHeight - 10
+		// A below-pointer tooltip can otherwise enlarge an auto-sized artifact.
+		const top = Math.max(
+			4,
+			Math.min(
+				above >= 4 ? above : y + 10,
+				container.clientHeight - tip.offsetHeight - 4,
+			),
+		)
+		tip.style.left = left + "px"
+		tip.style.top = top + "px"
+	}
+	const createAuditRetry = (host, maxRetries, delays, onFinalFail) => {
+		let retries = 0
+		let pending = false
+		let timer = 0
+		const schedule = (delay, action) => {
+			pending = true
+			timer = globalThis.setTimeout(() => {
+				pending = false
+				if (host?.isConnected === false || host?.dataset?.auditFailed) return
+				action()
+			}, delay)
+		}
+		const reset = () => {
+			if (timer) globalThis.clearTimeout(timer)
+			retries = 0
+			pending = false
+			timer = 0
+		}
+		const fail = (reason, onRetry) => {
+			if (host?.dataset?.auditFailed || pending) return false
+			if (retries < maxRetries) {
+				const delay = delays[Math.min(retries, delays.length - 1)] || 0
+				retries += 1
+				schedule(delay, onRetry)
+				return false
+			}
+			onFinalFail(reason)
+			return false
+		}
+		const runAll = action => {
+			let index = 0
+			const next = () => {
+				if (index >= maxRetries) return
+				const delay = delays[Math.min(index, delays.length - 1)] || 0
+				index += 1
+				schedule(delay, () => {
+					action()
+					next()
+				})
+			}
+			next()
+		}
+		return { fail, reset, runAll }
+	}
+	const createTooltip =
+		(formatTitle, contextLabel = "") =>
+		context => {
+			const { chart, tooltip } = context
+			const container = chart.canvas.parentElement
+			const tip = container.querySelector(".chart-tooltip")
+			if (!tooltip || tooltip.opacity === 0) {
+				tip.dataset.visible = "false"
+				tip.setAttribute("aria-hidden", "true")
+				return
+			}
+			const rows = tooltip.dataPoints.flatMap(point => {
+				const isLine = (point.dataset.type ?? chart.config.type) === "line"
+				const rawColor = isLine
+					? point.dataset.borderColor
+					: point.dataset.backgroundColor
+				const color = Array.isArray(rawColor)
+					? rawColor[point.dataIndex]
+					: rawColor
+				let mark = "square"
+				if (isLine) mark = "line"
+				if (point.dataset.borderDash) mark = "dashed"
+				const isXY =
+					point.raw !== null &&
+					typeof point.raw === "object" &&
+					Object.prototype.hasOwnProperty.call(point.raw, "y")
+				const row = {
+					color,
+					mark,
+					label: point.dataset.label,
+					value: formatValue(
+						isXY ? point.raw.y : point.raw,
+						point.dataset.valueKind,
+					),
+				}
+				if (isXY && typeof point.dataset.xSeriesKey === "string") {
+					return [
+						{
+							color,
+							mark,
+							label: point.dataset.xSeriesKey,
+							value: formatValue(point.raw.x, point.dataset.xValueKind),
+						},
+						row,
+					]
+				}
+				return [row]
+			})
+			if (contextLabel !== "") rows.push({ extra: contextLabel })
+			const pointLabel =
+				chart.data.labels?.[tooltip.dataPoints[0]?.dataIndex] ?? ""
+			buildTooltip(tip, formatTitle(tooltip.title[0] || pointLabel), rows)
+			tip.dataset.visible = "true"
+			tip.setAttribute("aria-hidden", "false")
+			positionTooltip(
+				tip,
+				container,
+				chart.canvas.offsetLeft + tooltip.caretX,
+				chart.canvas.offsetTop + tooltip.caretY,
+			)
+		}
+	const crosshair = {
+		id: "crosshair",
+		beforeDatasetsDraw: chart => {
+			const active = chart.tooltip?.getActiveElements?.() ?? []
+			if (!active.length) return
+			const x = active[0].element.x
+			const area = chart.chartArea
+			const ctx = chart.ctx
+			ctx.save()
+			ctx.beginPath()
+			ctx.moveTo(x, area.top)
+			ctx.lineTo(x, area.bottom)
+			ctx.lineWidth = 1
+			ctx.strokeStyle = cssVar("--border-strong") || "rgba(25,25,24,0.2)"
+			ctx.stroke()
+			ctx.restore()
+		},
+	}
+	const stabilizationCleanup = new WeakMap()
+	const createChartAudit = spec => {
+		let retry
+		const unsafeReason = chart => {
+			const kinds = [
+				...new Set(chart.data.datasets.map(dataset => dataset.valueKind)),
+			]
+			if (kinds.length !== 1 || !kinds[0]) {
+				return "every dataset must declare one shared valueKind"
+			}
+			if (spec.valueKind && kinds[0] !== spec.valueKind) {
+				return "axis expects valueKind " + spec.valueKind + ", got " + kinds[0]
+			}
+			for (const dataset of chart.data.datasets) {
+				for (const value of dataset.data) {
+					const parts =
+						value !== null &&
+						typeof value === "object" &&
+						Object.prototype.hasOwnProperty.call(value, "x") &&
+						Object.prototype.hasOwnProperty.call(value, "y")
+							? [value.x, value.y]
+							: Array.isArray(value)
+								? value
+								: [value]
+					for (const part of parts) {
+						if (part === null) continue
+						if (typeof part !== "number" || !Number.isFinite(part)) {
+							return "non-finite data value; missing must be null"
+						}
+					}
+				}
+			}
+			const axisName = spec.valueAxis || "y"
+			if (!chart.scales[axisName]) return "missing value axis " + axisName
+			return ""
+		}
+		const policyReason = chart => {
+			const kind = chart.data.datasets[0]?.valueKind
+			const axis = chart.scales[spec.valueAxis || "y"]
+			if (axis.ticks.length < 4 || axis.ticks.length > 6) {
+				return "value axis needs 4-6 ticks, has " + axis.ticks.length
+			}
+			if (
+				["count", "currency", "number"].includes(kind) &&
+				Math.max(Math.abs(axis.min), Math.abs(axis.max)) >= 10000
+			) {
+				for (const tick of axis.ticks) {
+					if (/[\d,]{5}/.test(String(tick.label).split(".")[0])) {
+						return (
+							"axis ticks must use compact formatting above 10K, found " +
+							tick.label
+						)
+					}
+				}
+			}
+			if (chart.options.animation !== false) return "animation must be false"
+			if (chart.options.plugins?.tooltip?.enabled !== false) {
+				return "canvas tooltip must be disabled (use the external tooltip)"
+			}
+			if (chart.config.type === "bar") {
+				const meta = chart.getDatasetMeta(0)
+				for (const element of meta.data) {
+					const thickness =
+						chart.options.indexAxis === "y" ? element.height : element.width
+					if (thickness > 64) return "bar thickness exceeds the 64px cap"
+				}
+			}
+			return ""
+		}
+		return {
+			id: "audit",
+			afterDestroy: chart => {
+				retry?.reset()
+				stabilizationCleanup.get(chart)?.()
+				stabilizationCleanup.delete(chart)
+			},
+			afterUpdate: chart => {
+				const host = chart.canvas.parentElement
+				if (!host || host.dataset.auditFailed) return
+				if (!retry) {
+					retry = createAuditRetry(host, 2, [100, 500], reason => {
+						host.dataset.auditFailed = "true"
+						host.dataset.auditReason = reason
+						host.textContent = "Chart failed validation: " + reason
+					})
+				}
+				const unsafe = unsafeReason(chart)
+				const policy = unsafe ? "" : policyReason(chart)
+				if (policy) host.dataset.auditPolicy = policy
+				else delete host.dataset.auditPolicy
+				if (unsafe) {
+					retry.fail(unsafe, () => {
+						if (!chart.canvas?.isConnected || host.dataset.auditFailed) return
+						chart.resize()
+						chart.update("none")
+					})
+					return
+				}
+				retry.reset()
+			},
+		}
+	}
+	const stabilize = chart => {
+		stabilizationCleanup.get(chart)?.()
+		let frame = 0
+		const host = chart.canvas.parentElement
+		const retry = createAuditRetry(host, 2, [100, 500], () => {})
+		const redraw = () => {
+			frame = 0
+			if (chart.canvas === null || !host.isConnected) return
+			chart.draw()
+			const canvas = chart.canvas
+			canvas.style.opacity = canvas.style.opacity === "0.999" ? "1" : "0.999"
+		}
+		const scheduleRedraw = () => {
+			if (frame) cancelAnimationFrame(frame)
+			frame = requestAnimationFrame(() => {
+				frame = requestAnimationFrame(redraw)
+			})
+		}
+		const settle = () => {
+			scheduleRedraw()
+			retry.runAll(redraw)
+		}
+		const observer =
+			typeof ResizeObserver === "undefined"
+				? undefined
+				: new ResizeObserver(scheduleRedraw)
+		observer?.observe(host)
+		stabilizationCleanup.set(chart, () => {
+			if (frame) cancelAnimationFrame(frame)
+			retry.reset()
+			observer?.disconnect()
+			window.removeEventListener("load", settle)
+			window.removeEventListener("resize", scheduleRedraw)
+		})
+		if (document.readyState === "complete") settle()
+		else window.addEventListener("load", settle, { once: true })
+		window.addEventListener("resize", scheduleRedraw)
+		return chart
+	}
+	const createLegendToggles = (chart, legendEl) => {
+		chart.data.datasets.forEach((dataset, index) => {
+			const button = document.createElement("button")
+			button.type = "button"
+			button.className = "legend-toggle"
+			button.setAttribute("aria-pressed", "true")
+			const isLine = chart.config.type === "line"
+			const key = document.createElement("span")
+			key.className = isLine ? "key-line" : "key-sq"
+			if (dataset.borderDash) key.dataset.dash = "dashed"
+			const color = dataset.borderColor || dataset.backgroundColor
+			if (isLine) key.style.borderTopColor = color
+			else key.style.background = color
+			const label = document.createElement("span")
+			label.textContent = dataset.label
+			button.append(key, label)
+			button.addEventListener("click", () => {
+				const visible = chart.data.datasets.map((value, datasetIndex) =>
+					chart.isDatasetVisible(datasetIndex),
+				)
+				visible[index] = !visible[index]
+				if (!visible.some(Boolean)) return
+				chart.setDatasetVisibility(index, visible[index])
+				button.setAttribute("aria-pressed", String(visible[index]))
+				chart.update("none")
+			})
+			legendEl.appendChild(button)
+		})
+	}
+	const SVGNS = "http://www.w3.org/2000/svg"
+	const el = (tag, attrs, parent) => {
+		const node = document.createElementNS(SVGNS, tag)
+		for (const key in attrs) node.setAttribute(key, attrs[key])
+		if (parent) parent.appendChild(node)
+		return node
+	}
+	const attachTooltip = (plot, onLineIndex) => {
+		const tip = plot.querySelector(".chart-tooltip")
+		const guide = plot.querySelector(".guide")
+		const hide = () => {
+			tip.dataset.visible = "false"
+			tip.setAttribute("aria-hidden", "true")
+			if (guide) guide.setAttribute("visibility", "hidden")
+		}
+		const show = (mark, clientX, clientY) => {
+			const bounds = plot.getBoundingClientRect()
+			let title = mark.dataset.heading
+			let rows = [
+				{
+					color: "var(" + mark.dataset.color + ")",
+					mark: mark.dataset.mark || "square",
+					label: mark.dataset.label,
+					value: mark.dataset.value,
+				},
+			]
+			if (mark.dataset.extra) rows.push({ extra: mark.dataset.extra })
+			if (mark.dataset.kind === "line" && onLineIndex) {
+				const detail = onLineIndex(Number(mark.dataset.index), guide)
+				if (Array.isArray(detail)) rows = detail
+				else if (detail) {
+					title = detail.title || title
+					rows = detail.rows || rows
+				}
+			}
+			buildTooltip(tip, title, rows)
+			tip.dataset.visible = "true"
+			tip.setAttribute("aria-hidden", "false")
+			positionTooltip(tip, plot, clientX - bounds.left, clientY - bounds.top)
+		}
+		plot.addEventListener("pointermove", event => {
+			const mark = event.target.closest
+				? event.target.closest(".data-mark")
+				: null
+			if (mark) show(mark, event.clientX, event.clientY)
+			else hide()
+		})
+		plot.addEventListener("pointerleave", hide)
+		plot.addEventListener("focusin", event => {
+			const mark = event.target.closest(".data-mark")
+			if (!mark) return
+			const bounds = mark.getBoundingClientRect()
+			show(mark, bounds.left + bounds.width / 2, bounds.top)
+		})
+		plot.addEventListener("focusout", hide)
+	}
+	const svgAuditRetries = new WeakMap()
+	const svgAudit = (plot, expectedMarks, rerender) => {
+		let retry = svgAuditRetries.get(plot)
+		if (!retry) {
+			retry = createAuditRetry(plot, 2, [100, 500], reason => {
+				plot.dataset.auditFailed = "true"
+				plot.dataset.auditReason = reason
+				plot.textContent = "Chart failed validation: " + reason
+			})
+			svgAuditRetries.set(plot, retry)
+		}
+		const fail = reason => retry.fail(reason, rerender)
+		const svgNode = plot.querySelector("svg")
+		if (!svgNode) return fail("missing svg")
+		const marks = svgNode.querySelectorAll(".data-mark").length
+		if (marks !== expectedMarks) {
+			return fail("expected " + expectedMarks + " marks, found " + marks)
+		}
+		const rect = svgNode.getBoundingClientRect()
+		const viewBox = (svgNode.getAttribute("viewBox") || "")
+			.split(/[\s,]+/)
+			.map(Number)
+		if (rect.width > 0 && viewBox.length === 4 && viewBox[2] > 0) {
+			const scale = rect.width / viewBox[2]
+			for (const text of svgNode.querySelectorAll("text")) {
+				const fontSize = parseFloat(getComputedStyle(text).fontSize || "12")
+				if (fontSize * scale < 11) {
+					return fail("effective text size below 11px after viewBox scaling")
+				}
+			}
+			for (const text of svgNode.querySelectorAll("text")) {
+				try {
+					const box = text.getBBox()
+					if (box.x < -1 || box.x + box.width > viewBox[2] + 1) {
+						return fail("text clips at the plot edge: " + text.textContent)
+					}
+				} catch (error) {
+					if (error instanceof TypeError || error instanceof DOMException) break
+					throw error
+				}
+			}
+			const labels = [...svgNode.querySelectorAll(".x-text")]
+			for (let index = 1; index < labels.length; index += 1) {
+				try {
+					const previous = labels[index - 1].getBBox()
+					const current = labels[index].getBBox()
+					if (
+						previous.x + previous.width > current.x &&
+						current.x + current.width > previous.x
+					) {
+						return fail("category labels overlap")
+					}
+				} catch (error) {
+					if (error instanceof TypeError || error instanceof DOMException) break
+					throw error
+				}
+			}
+		}
+		retry.reset()
+		delete plot.dataset.auditRetries
+		delete plot.dataset.auditRetryPending
+		return true
+	}
+	const chartJs = {
+		createTooltip,
+		crosshair,
+		createAudit: createChartAudit,
+		stabilize,
+		createLegendToggles,
+	}
+	const svg = { el, attachTooltip, audit: svgAudit }
+	return {
+		formatValue,
+		axisRange,
+		barPath,
+		lineLayout,
+		cssVar,
+		buildTooltip,
+		positionTooltip,
+		createAuditRetry,
+		chartJs,
+		svg,
+	}
+})()
+
+		const muted = InlineChartRuntime.cssVar("--muted") || "#615d59"
+		const grid = InlineChartRuntime.cssVar("--grid") || "rgba(25,25,24,0.08)"
+		const border = InlineChartRuntime.cssVar("--border") || "rgba(25,25,24,0.12)"
+		const lineCategoryAxis = labels => ({
+			grid: { display: false },
+			ticks: { color: muted, autoSkip: false, maxRotation: 0, callback: value => labels[value] },
+			afterBuildTicks: scale => {
+				const context = scale.chart.ctx
+				context.save()
+				context.font = "12px " + Chart.defaults.font.family
+				const widest = Math.max(...labels.flat().map(label => context.measureText(label).width))
+				context.restore()
+				const measuredBudget = Math.max(2, Math.floor((scale.maxWidth - widest) / (widest + 18)) + 1)
+				const budget = scale.chart.width < 500 ? Math.min(4, measuredBudget) : measuredBudget
+				if (scale.ticks.length <= budget) return
+				const ticks = scale.ticks
+				const interval = Math.ceil(ticks.length / budget)
+				// Keep the latest date and a fixed cadence instead of distorting
+				// intervals to show both endpoints.
+				scale.ticks = ticks.filter(
+					(_tick, index) => (ticks.length - 1 - index) % interval === 0,
+				)
+			},
+		})
+		const valueRange = (values, options, kind) => {
+			const lo = Math.min(...values)
+			const hi = Math.max(...values)
+			const range = InlineChartRuntime.axisRange(lo, hi, options)
+			if (kind === "percent" && lo >= 0 && hi <= 100 && range.max > 100) {
+				return InlineChartRuntime.axisRange(lo, hi, { ...options, cap: 100 })
+			}
+			return range
+		}
+		const valueAxis = (range, kind, options = {}) => {
+			if (range.scale === "logarithmic") {
+				return {
+					type: "logarithmic",
+					min: range.min,
+					max: range.max,
+					afterBuildTicks: scale => {
+						scale.ticks = scale.ticks.filter(tick => {
+							const exponent = Math.log10(tick.value)
+							return Math.abs(exponent - Math.round(exponent)) < 1e-9
+						})
+					},
+					ticks: {
+						color: muted,
+						callback: value => {
+							const exponent = Math.log10(value)
+							return Math.abs(exponent - Math.round(exponent)) < 1e-9
+								? InlineChartRuntime.formatValue(value, kind)
+								: ""
+						},
+					},
+					grid: { color: grid },
+					...options,
+				}
+			}
+			return {
+				min: range.min,
+				max: range.max,
+				afterBuildTicks: scale => {
+					if (range.includeBounds !== false) return
+					// Chart.js can re-space an explicit step between non-grid bounds.
+					// Keep the chosen interior ticks and the full signed data domain.
+					const first = Math.ceil(range.min / range.step - 1e-9)
+					const last = Math.floor(range.max / range.step + 1e-9)
+					scale.ticks = Array.from(
+						{ length: last - first + 1 },
+						(_value, index) => ({
+							value: Number(
+								((first + index) * range.step).toPrecision(12),
+							),
+						}),
+					)
+				},
+				ticks: {
+					stepSize: range.step,
+					includeBounds: range.includeBounds ?? true,
+					color: muted,
+					callback: value => InlineChartRuntime.formatValue(value, kind),
+				},
+				grid: { color: context => context.tick.value === 0 ? border : grid },
+				...options,
+			}
+		}
+		const groupedBarLayout = spec => ({
+			id: "groupedBarLayout",
+			beforeDatasetsUpdate: chart => {
+				if (spec.mode !== "grouped" || spec.series.length < 2) return
+				const scale = chart.scales[spec.orientation === "horizontal" ? "y" : "x"]
+				const lane = Math.abs(scale.getPixelForValue(1) - scale.getPixelForValue(0))
+				// A fixed thickness sets both the slot and the painted width, unlike a cap.
+				const thickness = Math.min(spec.maxBarThickness, lane * 0.72 / chart.getVisibleDatasetCount())
+				for (const dataset of chart.data.datasets) dataset.barThickness = thickness
+			},
+		})
+		const horizontalCategoryLayout = tickLabels => ({
+			id: "horizontalCategoryLayout",
+			beforeLayout: chart => {
+				if (chart.options.indexAxis !== "y") return
+				const context = chart.ctx
+				const font = Chart.defaults.font
+				context.save()
+				context.font = "12px " + font.family
+				const budget = Math.min(220, Math.max(80, chart.width * 0.4))
+				const labels = tickLabels.map(label => {
+					const lines = []
+					let line = ""
+					for (const word of String(label).split(/\s+/)) {
+						if (line && context.measureText(line + " " + word).width > budget) { lines.push(line); line = "" }
+						for (const character of Array.from((line ? " " : "") + word)) {
+							if (line && context.measureText(line + character).width > budget) { lines.push(line); line = "" }
+							line += character
+						}
+					}
+					if (line) lines.push(line)
+					return lines
+				})
+				context.restore()
+				chart.options.scales.y.ticks.font = { size: 12, family: font.family, lineHeight: 1.2 }
+				chart.options.scales.y.ticks.callback = value => labels[value]
+				const linesPerRow = Math.max(...labels.map(lines => lines.length))
+				chart.canvas.parentElement.style.height = Math.max(260, labels.length * (linesPerRow * 14.4 + 14) + 40) + "px"
+			},
+		})
+		const commonChartOptions = (options, context) => ({
+			responsive: true,
+			maintainAspectRatio: false,
+			animation: false,
+			plugins: {
+				legend: { display: false },
+				tooltip: { enabled: false, external: InlineChartRuntime.chartJs.createTooltip(value => value, context) },
+			},
+			...options,
+		})
+		const hueTokens = {"blue":"#7fb4ec","yellow":"#eac26b","green":"#72bc8f","purple":"#bf8eda","orange":"#eda86e","pink":"#df84a8","teal":"#4fb9c9","brown":"#bd9576","neutral":"#a39e98","red":"#e97366"}
+		const resolveHue = hue => InlineChartRuntime.cssVar("--" + hue) || hueTokens[hue]
+{const chartOptions = options => commonChartOptions(options, "200 unseen test records; score points");
+		const spec = {"labels":["Record 1","Record 2","Record 3","Record 4","Record 5","Record 6","Record 7","Record 8","Record 9","Record 10","Record 11","Record 12","Record 13","Record 14","Record 15","Record 16","Record 17","Record 18","Record 19","Record 20","Record 21","Record 22","Record 23","Record 24","Record 25","Record 26","Record 27","Record 28","Record 29","Record 30","Record 31","Record 32","Record 33","Record 34","Record 35","Record 36","Record 37","Record 38","Record 39","Record 40","Record 41","Record 42","Record 43","Record 44","Record 45","Record 46","Record 47","Record 48","Record 49","Record 50","Record 51","Record 52","Record 53","Record 54","Record 55","Record 56","Record 57","Record 58","Record 59","Record 60","Record 61","Record 62","Record 63","Record 64","Record 65","Record 66","Record 67","Record 68","Record 69","Record 70","Record 71","Record 72","Record 73","Record 74","Record 75","Record 76","Record 77","Record 78","Record 79","Record 80","Record 81","Record 82","Record 83","Record 84","Record 85","Record 86","Record 87","Record 88","Record 89","Record 90","Record 91","Record 92","Record 93","Record 94","Record 95","Record 96","Record 97","Record 98","Record 99","Record 100","Record 101","Record 102","Record 103","Record 104","Record 105","Record 106","Record 107","Record 108","Record 109","Record 110","Record 111","Record 112","Record 113","Record 114","Record 115","Record 116","Record 117","Record 118","Record 119","Record 120","Record 121","Record 122","Record 123","Record 124","Record 125","Record 126","Record 127","Record 128","Record 129","Record 130","Record 131","Record 132","Record 133","Record 134","Record 135","Record 136","Record 137","Record 138","Record 139","Record 140","Record 141","Record 142","Record 143","Record 144","Record 145","Record 146","Record 147","Record 148","Record 149","Record 150","Record 151","Record 152","Record 153","Record 154","Record 155","Record 156","Record 157","Record 158","Record 159","Record 160","Record 161","Record 162","Record 163","Record 164","Record 165","Record 166","Record 167","Record 168","Record 169","Record 170","Record 171","Record 172","Record 173","Record 174","Record 175","Record 176","Record 177","Record 178","Record 179","Record 180","Record 181","Record 182","Record 183","Record 184","Record 185","Record 186","Record 187","Record 188","Record 189","Record 190","Record 191","Record 192","Record 193","Record 194","Record 195","Record 196","Record 197","Record 198","Record 199","Record 200"],"points":[{"x":65.4,"y":66.87057300604067},{"x":75.6,"y":61.574011935443025},{"x":74.3,"y":73.841843049592},{"x":83.6,"y":78.46281003559352},{"x":62.3,"y":66.8576014926074},{"x":76.5,"y":69.22545295628352},{"x":57.1,"y":64.41080432487502},{"x":67.9,"y":73.30186578107329},{"x":62.5,"y":63.679981582053784},{"x":64.7,"y":63.21657164020852},{"x":70.1,"y":74.87454335703971},{"x":65.7,"y":73.77746506284788},{"x":87,"y":85.53074693872712},{"x":59.8,"y":67.68065040364098},{"x":71.2,"y":66.52022979496476},{"x":65.6,"y":64.19689645114701},{"x":70.5,"y":72.0349730840399},{"x":54,"y":57.957996928977536},{"x":69.9,"y":79.78404456159113},{"x":80.7,"y":70.4650733916413},{"x":67.8,"y":66.63074957117128},{"x":70.7,"y":64.41522374548249},{"x":65.4,"y":61.84861104343116},{"x":65.2,"y":63.8179365632295},{"x":61,"y":62.71297554178337},{"x":68.8,"y":68.05169999869383},{"x":64.3,"y":67.71966407374266},{"x":85.1,"y":74.86812533605169},{"x":68.6,"y":67.34962811129427},{"x":60.5,"y":67.37554367243564},{"x":42.6,"y":60.694748829285764},{"x":67.2,"y":63.35878309869812},{"x":79.7,"y":84.86749082924263},{"x":68.8,"y":64.92753488002703},{"x":59.1,"y":54.909616963480254},{"x":53.1,"y":56.03544611309373},{"x":55.4,"y":58.735038229128776},{"x":71.3,"y":75.34159953138273},{"x":61.9,"y":64.2109581572358},{"x":67.4,"y":70.00249425643474},{"x":63.6,"y":62.87892733960963},{"x":82.7,"y":78.1130585890028},{"x":58.9,"y":59.00693416431875},{"x":60,"y":58.13370955398916},{"x":84.1,"y":73.91043699366378},{"x":78.8,"y":74.5231680330284},{"x":95.1,"y":91.89363617870671},{"x":62.8,"y":67.47855245414598},{"x":62,"y":70.23803106118643},{"x":75.2,"y":73.44644287038636},{"x":69.3,"y":68.35371174190037},{"x":68.6,"y":63.78971918475637},{"x":75,"y":75.40879902481254},{"x":68.3,"y":68.89862342764414},{"x":67.2,"y":71.03069904441503},{"x":53.7,"y":63.814671148769264},{"x":68.8,"y":71.42224204467527},{"x":68.4,"y":67.4696361117299},{"x":67.7,"y":59.65800093387389},{"x":61,"y":68.33401899052788},{"x":82.4,"y":70.71881825894187},{"x":84.9,"y":81.70508053584751},{"x":70.2,"y":76.84074373603542},{"x":63.3,"y":70.80365671396017},{"x":78.2,"y":70.31690020519163},{"x":45.9,"y":45.608094346100145},{"x":58.5,"y":56.55295884174968},{"x":65.6,"y":62.90813578093641},{"x":78.6,"y":75.6975236523812},{"x":74.6,"y":78.71887039835642},{"x":78.1,"y":70.9120559965743},{"x":67.4,"y":64.32577065863758},{"x":74,"y":75.10217745197976},{"x":61.4,"y":70.04266193268367},{"x":85.4,"y":79.54847760403563},{"x":81.7,"y":70.39768348919273},{"x":62.1,"y":67.43311466797873},{"x":77,"y":78.27075226760712},{"x":55.4,"y":61.86170925227666},{"x":95.3,"y":84.02185558501964},{"x":68.5,"y":62.21575342406265},{"x":73,"y":74.42095232209994},{"x":53.2,"y":63.3815598409063},{"x":59.9,"y":66.48950170981017},{"x":69.5,"y":71.3997898900659},{"x":75.6,"y":67.49883697000365},{"x":71.3,"y":72.68078064095465},{"x":78.3,"y":77.84057088932764},{"x":65.3,"y":62.53573418766454},{"x":71.8,"y":66.88777353106266},{"x":56.5,"y":61.35677483376306},{"x":82.1,"y":80.38985637094476},{"x":63.7,"y":62.29462256806785},{"x":62.8,"y":63.74331021840761},{"x":63.1,"y":60.82925408206004},{"x":54.6,"y":55.14847680122115},{"x":50.3,"y":56.547757247638266},{"x":63.5,"y":62.71080031997866},{"x":80.6,"y":72.05431248310005},{"x":63.6,"y":67.66325946960023},{"x":70.7,"y":67.25260789939965},{"x":73.2,"y":65.95324134657926},{"x":70.5,"y":72.98574219641681},{"x":67.3,"y":70.51493208639151},{"x":63.4,"y":72.64310519105624},{"x":62.8,"y":60.352500794138194},{"x":72,"y":73.21574672438071},{"x":75.1,"y":78.10555517755964},{"x":64.3,"y":64.41080432487502},{"x":59.5,"y":59.26299452708164},{"x":76.1,"y":73.63621720148677},{"x":50.4,"y":52.16094223112138},{"x":49,"y":61.81710078477265},{"x":50.2,"y":60.11037554193706},{"x":63.4,"y":58.61251952201167},{"x":65.3,"y":69.264105790905},{"x":70.6,"y":75.74065352613914},{"x":60.3,"y":66.5014821603898},{"x":71.8,"y":75.5305445438199},{"x":61.5,"y":58.81986910109405},{"x":67.7,"y":63.532695224864995},{"x":56.4,"y":62.162432810755895},{"x":74,"y":63.73675192376198},{"x":66.5,"y":62.674870640712655},{"x":61.8,"y":69.81502783774363},{"x":60,"y":61.569755458129144},{"x":85.5,"y":87.11162434637883},{"x":63.5,"y":67.89108397355903},{"x":81.3,"y":74.50001187512389},{"x":54.1,"y":46.310300412079776},{"x":44.9,"y":56.605125448909185},{"x":60.4,"y":61.7390001361408},{"x":58.2,"y":68.64359037561627},{"x":84.3,"y":86.32240128935128},{"x":48.7,"y":52.84483620877589},{"x":73.1,"y":70.68461231065301},{"x":48,"y":51.24130865444303},{"x":70.7,"y":68.45075399345025},{"x":55,"y":61.549041491099175},{"x":58.2,"y":63.379067614555794},{"x":85.8,"y":75.09631557757626},{"x":69.7,"y":60.956010786160064},{"x":64.1,"y":62.292645338334914},{"x":66.4,"y":64.68752103613889},{"x":67.3,"y":68.59547135642093},{"x":61.7,"y":57.76772117950493},{"x":49.3,"y":57.40962941975478},{"x":62.3,"y":63.35781950156963},{"x":70.7,"y":75.16672380808735},{"x":62.3,"y":56.88531935429966},{"x":46.1,"y":49.3241498416894},{"x":62.3,"y":67.8845256789134},{"x":71.6,"y":61.07368125147811},{"x":66.7,"y":67.92701365282504},{"x":52.5,"y":53.83597579167389},{"x":64.1,"y":65.1825679320549},{"x":79.5,"y":70.45987179752989},{"x":65.9,"y":64.78281751705634},{"x":65.2,"y":66.0955165186754},{"x":81.3,"y":71.28675940717793},{"x":36.8,"y":43.90269833807363},{"x":48,"y":50.46158471892254},{"x":73.2,"y":71.14629852152113},{"x":70.3,"y":79.97170138930102},{"x":54.3,"y":65.01661613422863},{"x":51.9,"y":58.239027736084275},{"x":72.4,"y":72.05994352838376},{"x":61.2,"y":59.28891008822302},{"x":69.2,"y":76.20001588002025},{"x":89,"y":78.45589080558251},{"x":65,"y":68.94522280301166},{"x":72.5,"y":79.84027723704577},{"x":47.1,"y":40.42646627735377},{"x":64.6,"y":68.02558922633331},{"x":73.8,"y":73.64141270052063},{"x":72.8,"y":69.2818760407569},{"x":42.7,"y":44.313941672759384},{"x":67.2,"y":70.77118285817315},{"x":62.3,"y":66.26071360872288},{"x":47.4,"y":62.97905002267088},{"x":67.7,"y":61.89514670519216},{"x":66,"y":65.93687772327353},{"x":66.5,"y":69.55955923946591},{"x":73.9,"y":73.37438551978258},{"x":77.9,"y":72.94576492918664},{"x":61.2,"y":60.88586148047464},{"x":54.1,"y":55.47853549643938},{"x":76.6,"y":74.34831079006399},{"x":70.8,"y":67.31445313980703},{"x":67.8,"y":61.77710503721152},{"x":64.8,"y":64.60813220277974},{"x":66.9,"y":67.22461717782666},{"x":54.1,"y":47.2495000447184},{"x":46.8,"y":55.211122695463416},{"x":63.9,"y":70.62025636356417},{"x":48.1,"y":52.85544209138568},{"x":60.9,"y":59.409443982554166},{"x":38.8,"y":46.84230429799681},{"x":62.7,"y":59.26800571217429},{"x":62.5,"y":68.18077219825618}],"subjectIndex":-1,"x":{"label":"Actual Score (points)","valueKind":"number","tickKind":"number","axis":{"zero":true,"tight":true}},"y":{"label":"Predicted Score (points)","valueKind":"number","tickKind":"number","axis":{"zero":true,"tight":true}},"focus":{"base":"green","subject":"green","alpha":""},"showTrend":true}
+		const xValues = spec.points.map(point => point.x)
+		const yValues = spec.points.map(point => point.y)
+		const xRange = valueRange(xValues, spec.x.axis, spec.x.valueKind)
+		const yRange = valueRange(yValues, spec.y.axis, spec.y.valueKind)
+		const pointDataset = { label: spec.y.label, valueKind: spec.y.valueKind, xSeriesKey: spec.x.label, xValueKind: spec.x.valueKind, data: spec.points, backgroundColor: spec.points.map((_point, index) => index === spec.subjectIndex ? resolveHue(spec.focus.subject) : resolveHue(spec.focus.base) + spec.focus.alpha), borderColor: "transparent", pointRadius: 4, pointHoverRadius: 6 }
+		const datasets = [pointDataset]
+		if (spec.showTrend && spec.points.length > 1) {
+			const meanX = xValues.reduce((sum, value) => sum + value, 0) / xValues.length
+			const meanY = yValues.reduce((sum, value) => sum + value, 0) / yValues.length
+			const denominator = xValues.reduce((sum, value) => sum + (value - meanX) ** 2, 0)
+			if (denominator > 0) {
+				const slope = spec.points.reduce((sum, point) => sum + (point.x - meanX) * (point.y - meanY), 0) / denominator
+				const intercept = meanY - slope * meanX
+				datasets.push({ label: "Linear trend", valueKind: spec.y.valueKind, auxiliary: true, data: xValues.map(x => ({ x, y: intercept + slope * x })), borderColor: muted, backgroundColor: "transparent", borderWidth: 1.5, borderDash: [5, 4], pointRadius: 0, showLine: true, fill: false })
+			}
+		}
+		const chart = new Chart(document.getElementById("canonicalScatter"), {
+			type: "scatter",
+			plugins: [InlineChartRuntime.chartJs.createAudit({ valueAxis: "y", valueKind: spec.y.valueKind })],
+			data: { labels: spec.labels, datasets },
+			options: chartOptions({ interaction: { mode: "nearest", intersect: true }, scales: { x: valueAxis(xRange, spec.x.tickKind, { title: { display: true, text: spec.x.label, color: muted } }), y: valueAxis(yRange, spec.y.tickKind, { title: { display: true, text: spec.y.label, color: muted } }) } }),
+		})
+		InlineChartRuntime.chartJs.stabilize(chart)
+}
+	})()
+</script>
